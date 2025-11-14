@@ -1,0 +1,150 @@
+/* src/components/ReviewSummary.css */
+.review-summary {
+  background: var(--white);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+  overflow: hidden;
+}
+
+.summary-header {
+  background: linear-gradient(135deg, var(--primary-blue), var(--secondary-blue));
+  color: var(--white);
+  padding: 1.5rem;
+}
+
+.summary-header h3 {
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+
+.summary-content {
+  padding: 1.5rem;
+}
+
+.summary-section {
+  padding: 1.25rem;
+  margin-bottom: 1rem;
+  background: var(--light-gray);
+  border-radius: var(--radius-md);
+  border-left: 4px solid var(--medium-gray);
+  transition: var(--transition);
+}
+
+.summary-section.completed {
+  background: rgba(163, 230, 53, 0.1);
+  border-left-color: var(--green-highlight);
+}
+
+.summary-section.current {
+  background: rgba(59, 130, 246, 0.1);
+  border-left-color: var(--secondary-blue);
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.75rem;
+}
+
+.section-number {
+  width: 28px;
+  height: 28px;
+  background: var(--medium-gray);
+  color: var(--dark-gray);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 0.875rem;
+  margin-right: 0.75rem;
+}
+
+.summary-section.completed .section-number {
+  background: var(--green-highlight);
+  color: var(--primary-blue);
+}
+
+.summary-section.current .section-number {
+  background: var(--secondary-blue);
+  color: var(--white);
+}
+
+.section-header h4 {
+  flex: 1;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--primary-blue);
+}
+
+.check-icon {
+  color: var(--green-highlight);
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+
+.section-content {
+  margin-left: 2.25rem;
+}
+
+.section-content p {
+  font-size: 0.9375rem;
+  color: var(--dark-gray);
+  margin-bottom: 0.25rem;
+}
+
+.text-muted {
+  opacity: 0.7;
+  font-size: 0.875rem;
+}
+
+.matricule-preview {
+  font-family: monospace;
+  font-weight: 700;
+  color: var(--secondary-blue);
+  background: rgba(59, 130, 246, 0.1);
+  padding: 0.5rem;
+  border-radius: 0.25rem;
+  display: inline-block;
+  margin-top: 0.25rem;
+}
+
+.amount-display {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+  background: var(--white);
+  border-radius: var(--radius-sm);
+  margin-top: 0.5rem;
+}
+
+.amount-label {
+  font-size: 0.9375rem;
+  color: var(--dark-gray);
+}
+
+.amount-value {
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: var(--primary-blue);
+}
+
+.summary-footer {
+  padding: 1.5rem;
+  border-top: 2px solid var(--light-gray);
+}
+
+.help-text {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 0.875rem;
+  color: var(--dark-gray);
+  opacity: 0.8;
+}
+
+.help-icon {
+  font-size: 1.25rem;
+}

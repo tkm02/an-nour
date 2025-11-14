@@ -1,0 +1,246 @@
+/* src/components/Registration/StepDormitory.css */
+.dormitory-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.dormitory-card {
+  background: var(--light-gray);
+  padding: 1.5rem;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: var(--transition);
+  border: 3px solid transparent;
+  position: relative;
+}
+
+.dormitory-card:hover:not(.disabled) {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-md);
+  border-color: var(--secondary-blue);
+}
+
+.dormitory-card.selected {
+  background: var(--white);
+  border-color: var(--green-highlight);
+  box-shadow: var(--shadow-lg);
+}
+
+.dormitory-card.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.dormitory-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1rem;
+}
+
+.dormitory-name {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--primary-blue);
+}
+
+.selected-badge {
+  background: var(--green-highlight);
+  color: var(--primary-blue);
+  padding: 0.25rem 0.75rem;
+  border-radius: 1rem;
+  font-size: 0.875rem;
+  font-weight: 700;
+}
+
+.dormitory-capacity {
+  margin-bottom: 1rem;
+}
+
+.capacity-text {
+  display: flex;
+  align-items: baseline;
+  gap: 0.25rem;
+  margin-bottom: 0.5rem;
+}
+
+.available-count {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--secondary-blue);
+}
+
+.capacity-total {
+  font-size: 1.25rem;
+  color: var(--dark-gray);
+  opacity: 0.7;
+}
+
+.capacity-label {
+  font-size: 0.875rem;
+  color: var(--dark-gray);
+  margin-left: 0.5rem;
+}
+
+.capacity-bar {
+  width: 100%;
+  height: 8px;
+  background: var(--medium-gray);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.capacity-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--green-highlight), var(--yellow-accent));
+  transition: width 0.3s ease;
+}
+
+.availability-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  border-radius: 1rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.availability-status.available {
+  background: rgba(163, 230, 53, 0.2);
+  color: #365314;
+}
+
+.availability-status.full {
+  background: rgba(239, 68, 68, 0.2);
+  color: #991b1b;
+}
+
+.matricule-preview {
+  text-align: center;
+  padding: 1.5rem;
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(163, 230, 53, 0.1));
+  border-radius: var(--radius-md);
+  margin-bottom: 1rem;
+}
+
+.matricule-label {
+  font-size: 0.9375rem;
+  color: var(--dark-gray);
+  margin-bottom: 0.5rem;
+}
+
+.matricule-value {
+  font-size: 1.75rem;
+  font-weight: 800;
+  color: var(--primary-blue);
+  letter-spacing: 0.05em;
+}
+
+/* Loading Spinner */
+.loading-spinner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem 2rem;
+}
+
+.loading-spinner p {
+  margin-top: 1rem;
+  color: var(--dark-gray);
+  font-weight: 500;
+}
+
+@media (max-width: 768px) {
+  .dormitory-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.loading-spinner,
+.error-container,
+.no-availability-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  text-align: center;
+}
+
+.spinner {
+  width: 50px;
+  height: 50px;
+  border: 4px solid #e5e7eb;
+  border-top-color: #2563eb;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.error-icon,
+.icon-large {
+  font-size: 64px;
+  margin-bottom: 16px;
+}
+
+.error-container h3,
+.no-availability-container h3 {
+  color: #1f2937;
+  font-size: 24px;
+  margin: 16px 0 8px;
+}
+
+.error-container p,
+.no-availability-container p {
+  color: #6b7280;
+  font-size: 16px;
+  max-width: 500px;
+  margin-bottom: 24px;
+}
+
+.info-card {
+  background: #f3f4f6;
+  border-left: 4px solid #2563eb;
+  padding: 16px;
+  border-radius: 8px;
+  margin: 24px 0;
+  text-align: left;
+}
+
+.info-card p {
+  margin: 0;
+  line-height: 1.8;
+}
+
+.info-card a {
+  color: #2563eb;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.info-card a:hover {
+  text-decoration: underline;
+}
+
+/* Barre de capacité critique */
+.capacity-fill.critical {
+  background: linear-gradient(90deg, #ef4444, #dc2626);
+}
+
+/* Carte désactivée */
+.dormitory-card.disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.dormitory-card.disabled:hover {
+  transform: none;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}

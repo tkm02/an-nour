@@ -1,0 +1,78 @@
+/* src/components/Registration/StepHealthInfo.css */
+.health-info-notice {
+  display: flex;
+  gap: 1rem;
+  padding: 1.5rem;
+  background: rgba(59, 130, 246, 0.1);
+  border-left: 4px solid var(--secondary-blue);
+  border-radius: var(--radius-md);
+  margin-bottom: 2rem;
+}
+
+.notice-icon {
+  font-size: 2rem;
+  flex-shrink: 0;
+}
+
+.notice-content strong {
+  display: block;
+  color: var(--primary-blue);
+  margin-bottom: 0.25rem;
+}
+
+.notice-content p {
+  font-size: 0.9375rem;
+  color: var(--dark-gray);
+  line-height: 1.6;
+}
+
+.custom-input-container {
+  margin-top: 1rem;
+  animation: slideDown 0.3s ease;
+}
+
+.form-textarea {
+  width: 100%;
+  min-height: 100px;
+  resize: vertical;
+}
+
+.input-hint {
+  font-size: 0.875rem;
+  color: var(--dark-gray);
+  opacity: 0.7;
+  margin-top: 0.5rem;
+  font-style: italic;
+}
+
+.health-note {
+  padding: 1.25rem;
+  background: rgba(251, 191, 36, 0.1);
+  border-left: 4px solid var(--yellow-accent);
+  border-radius: var(--radius-md);
+  margin-top: 2rem;
+}
+
+.health-note p {
+  font-size: 0.9375rem;
+  color: var(--dark-gray);
+  line-height: 1.6;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+textarea{
+  padding: 10px;
+  outline: none;
+  border: 1px solid #000;
+  border-radius: 5px;
+}
