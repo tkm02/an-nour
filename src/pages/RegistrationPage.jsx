@@ -11,7 +11,8 @@ import "./RegistrationPage.css";
 const RegistrationPage = () => {
   const navigate = useNavigate();
   const [currentStep, setCurrentStep] = useState(1);
-  const [registrationType, setRegistrationType] = useState("single");
+  // const [registrationType, setRegistrationType] = useState("single");
+  const registrationType = "single";
   const [formData, setFormData] = useState({
     personalInfo: {
       nom: "",
@@ -107,7 +108,7 @@ const RegistrationPage = () => {
     }
   };
 
-  setRegistrationType("single");
+  // setRegistrationType("single");
   return (
     <div className="registration-page">
       {/* Header minimaliste */}
