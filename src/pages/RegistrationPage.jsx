@@ -107,6 +107,7 @@ const RegistrationPage = () => {
     }
   };
 
+  setRegistrationType("single");
   return (
     <div className="registration-page">
       {/* Header minimaliste */}

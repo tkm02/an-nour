@@ -20,7 +20,7 @@ const StepPayment = ({
   const [uploadError, setUploadError] = useState("");
   const [ocrProgress, setOcrProgress] = useState(0);
   const [verificationResult, setVerificationResult] = useState(null);
-  const [registrationResponse, setRegistrationResponse] = useState(null);
+  // const [registrationResponse, setRegistrationResponse] = useState(null);
 
   const calculateTotalAmount = () => {
     if (registrationType === "multiple" && data.children) {
@@ -257,7 +257,7 @@ const StepPayment = ({
     console.log("✅ Réponse du backend:", response.data);
 
     // Sauvegarder la réponse complète
-    setRegistrationResponse(response.data);
+    // setRegistrationResponse(response.data);
 
     // Mettre à jour le localStorage avec la réponse du backend
     localStorage.setItem(

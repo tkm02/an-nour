@@ -58,34 +58,44 @@ const LandingPage = () => {
           {/* Menu Navigation */}
           <ul className={`navbar-menu ${isMenuOpen ? "active" : ""}`}>
             <li>
-              <a
-                onClick={() => scrollToSection("accueil")}
+              <button
+                type="button"
                 className="nav-link"
+                onClick={() => scrollToSection("accueil")}
               >
                 <span className="nav-text">Accueil</span>
                 <span className="nav-indicator"></span>
-              </a>
+              </button>
             </li>
             <li>
-              <a
-                onClick={() => scrollToSection("programme")}
+              <button
+                type="button"
                 className="nav-link"
+                onClick={() => scrollToSection("programme")}
               >
                 <span className="nav-text">Programme</span>
                 <span className="nav-indicator"></span>
-              </a>
+              </button>
             </li>
             <li>
-              <a onClick={() => scrollToSection("tarif")} className="nav-link">
+              <button
+                type="button"
+                className="nav-link"
+                onClick={() => scrollToSection("tarif")}
+              >
                 <span className="nav-text">Tarif</span>
                 <span className="nav-indicator"></span>
-              </a>
+              </button>
             </li>
             <li>
-              <a onClick={() => scrollToSection("faq")} className="nav-link">
+              <button
+                type="button"
+                className="nav-link"
+                onClick={() => scrollToSection("faq")}
+              >
                 <span className="nav-text">FAQ</span>
                 <span className="nav-indicator"></span>
-              </a>
+              </button>
             </li>
             <li>
               <button
@@ -141,7 +151,9 @@ const LandingPage = () => {
                   <strong>AEEMCI</strong>
                 </p>
                 <p>SERAE</p>
-                <p style={{fontFamily:"monospace",fontSize:"1.2em"}}>Sous-comité Cocody I & Sous-comité Bingerville</p>
+                <p style={{ fontFamily: "monospace", fontSize: "1.2em" }}>
+                  Sous-comité Cocody I & Sous-comité Bingerville
+                </p>
               </div>
             </div>
 
@@ -157,20 +169,21 @@ const LandingPage = () => {
 
             <div className="footer-section">
               <h4 className="footer-subtitle">Liens rapides</h4>
-              <ul className="footer-links">
-                <li>
-                  <a onClick={() => scrollToSection("accueil")}>Accueil</a>
-                </li>
-                <li>
-                  <a onClick={() => scrollToSection("programme")}>Programme</a>
-                </li>
-                <li>
-                  <a onClick={() => scrollToSection("tarif")}>Tarif</a>
-                </li>
-                <li>
-                  <a onClick={() => scrollToSection("faq")}>FAQ</a>
-                </li>
-              </ul>
+             <ul className="footer-links">
+  <li>
+    <button type="button" className="footer-link" onClick={() => scrollToSection("accueil")}>Accueil</button>
+  </li>
+  <li>
+    <button type="button" className="footer-link" onClick={() => scrollToSection("programme")}>Programme</button>
+  </li>
+  <li>
+    <button type="button" className="footer-link" onClick={() => scrollToSection("tarif")}>Tarif</button>
+  </li>
+  <li>
+    <button type="button" className="footer-link" onClick={() => scrollToSection("faq")}>FAQ</button>
+  </li>
+</ul>
+
             </div>
           </div>
 
@@ -178,7 +191,7 @@ const LandingPage = () => {
             <p>
               &copy; AN NOUR 2025 - 7eme edition | (c) 2025 Tous droits réservés
             </p>
-            <span style={{fontStyle:"italic"}}>
+            <span style={{ fontStyle: "italic" }}>
               Pour une spiritualite etincelante...
             </span>
           </div>
