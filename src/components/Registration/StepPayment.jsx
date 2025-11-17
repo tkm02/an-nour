@@ -2,8 +2,9 @@
 import React, { useState } from "react";
 import axios from "axios";
 import "./StepPayment.css";
+import { uploadToCloudinary } from "../../utils/cloudinaryUpload";
 
-const API_URL = "http://192.168.1.25:8000";
+const API_URL =  process.env.REACT_APP_API_URL; // Ton API
 
 const StepPayment = ({
   data,
@@ -49,7 +50,7 @@ const StepPayment = ({
       setOcrProgress(20);
 
       const response = await axios.post(
-        `${API_URL}/api/verify-receipt`,
+        `${API_URL}/api/v1/registrations/verify-receipt`,
         formData,
         {
           headers: {
@@ -146,7 +147,7 @@ const StepPayment = ({
     }
   };
 
-  const handleUploadReceipt = async () => {
+   const handleUploadReceipt = async () => {
     if (!receiptImage || !verificationResult?.isValid) {
       setUploadError("Veuillez uploader une preuve valide");
       return;
@@ -154,21 +155,31 @@ const StepPayment = ({
 
     try {
       setIsUploading(true);
+      setUploadError("");
 
-      // Préparer les données de paiement
+      console.log('🚀 Upload vers Cloudinary...');
+
+      // ✅ Upload vers Cloudinary
+      const uploadResult = await uploadToCloudinary(receiptImage);
+
+      if (!uploadResult.success) {
+        throw new Error(uploadResult.error || 'Échec upload image');
+      }
+
+      console.log('✅ Image uploadée:', uploadResult.url);
+      console.log('📦 Taille:', (uploadResult.size / 1024).toFixed(2), 'KB');
+
+      // Préparer les données de paiement avec URL Cloudinary
       const paymentData = {
         transactionId: verificationResult.extractedData.transactionId,
         amount: verificationResult.extractedData.amount,
-        receiptUrl: receiptPreview,
-        timestamp: new Date().toISOString(),
+        receiptUrl: uploadResult.url, // ✅ URL Cloudinary
       };
 
-      console.log("Données de paiement:", paymentData);
+      console.log('💾 Sauvegarde des données:', paymentData);
 
-      // Mettre à jour le localStorage avec les infos de paiement
-      const savedData = JSON.parse(
-        localStorage.getItem("an-nour-registration") || "{}"
-      );
+      // Sauvegarder dans localStorage
+      const savedData = JSON.parse(localStorage.getItem("an-nour-registration") || "{}");
       const updatedData = {
         ...savedData,
         paymentInfo: paymentData,
@@ -176,97 +187,108 @@ const StepPayment = ({
 
       localStorage.setItem("an-nour-registration", JSON.stringify(updatedData));
 
-      // Simuler un délai
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-
       setTransactionId(verificationResult.extractedData.transactionId);
       setPaymentStatus("completed");
+
+      console.log('✅ Upload terminé avec succès');
+
     } catch (error) {
-      console.error("Erreur upload:", error);
-      setUploadError("Erreur lors de l'upload. Veuillez réessayer.");
+      console.error("❌ Erreur upload:", error);
+      setUploadError(
+        error.message || "Erreur lors de l'upload. Veuillez réessayer."
+      );
     } finally {
       setIsUploading(false);
     }
   };
 
   const handleConfirmPayment = async () => {
-    try {
-      setIsUploading(true);
+  try {
+    setIsUploading(true);
 
-      // Récupérer toutes les données du localStorage
-      const fullRegistrationData = JSON.parse(
-        localStorage.getItem("an-nour-registration") || "{}"
-      );
+    // Récupérer toutes les données du localStorage
+    const fullRegistrationData = JSON.parse(
+      localStorage.getItem("an-nour-registration") || "{}"
+    );
 
-      console.log(
-        "Envoi des données complètes au backend:",
-        fullRegistrationData
-      );
+    console.log("📦 Données brutes du localStorage:", fullRegistrationData);
 
-      // Préparer FormData pour l'envoi
-      const formData = new FormData();
-
-      // Ajouter les données JSON
-      formData.append(
-        "registrationData",
-        JSON.stringify({
-          personalInfo: fullRegistrationData.personalInfo,
-          dormitoryInfo: fullRegistrationData.dormitoryInfo,
-          healthInfo: fullRegistrationData.healthInfo,
-          paymentInfo: fullRegistrationData.paymentInfo,
-          registrationType: registrationType,
-        })
-      );
-
-      // Ajouter l'image si disponible
-      if (receiptImage) {
-        formData.append("receiptImage", receiptImage);
+    // ✅ Nettoyer et préparer les données à envoyer
+    const cleanedData = {
+      personalInfo: {
+        nom: fullRegistrationData.personalInfo.nom,
+        prenom: fullRegistrationData.personalInfo.prenom,
+        sexe: fullRegistrationData.personalInfo.sexe,
+        age: fullRegistrationData.personalInfo.age,
+        communeHabitation: fullRegistrationData.personalInfo.communeHabitation,
+        niveauAcademique: fullRegistrationData.personalInfo.niveauAcademique,
+        communeAutre: fullRegistrationData.personalInfo.communeAutre || ""
+      },
+      dormitoryInfo: {
+        dortoirId: fullRegistrationData.dormitoryInfo.dortoirCode,
+        dortoir: fullRegistrationData.dormitoryInfo.dortoir,
+        // ❌ Retirer: dortoir, matricule (sera généré par le backend)
+      },
+      healthInfo: {
+        allergie: fullRegistrationData.healthInfo.allergie,
+        antecedentMedical: fullRegistrationData.healthInfo.antecedentMedical
+      },
+      paymentInfo: {
+        transactionId: fullRegistrationData.paymentInfo.transactionId,
+        amount: fullRegistrationData.paymentInfo.amount,
+        receiptUrl: fullRegistrationData.paymentInfo.receiptUrl
+        // ❌ Retirer: timestamp (sera généré par le backend)
       }
+    };
 
-      // Envoyer au backend
-      const response = await axios.post(
-        `${API_URL}/api/registrations`,
-        formData,
-        {
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
-        }
-      );
+    console.log("✅ Données nettoyées à envoyer:", cleanedData);
 
-      console.log("Réponse du backend:", response.data);
-
-      // Sauvegarder la réponse pour la page de confirmation
-      setRegistrationResponse(response.data);
-
-      // Mettre à jour le localStorage avec la réponse complète
-      localStorage.setItem(
-        "an-nour-registration",
-        JSON.stringify({
-          ...fullRegistrationData,
-          registrationId: response.data.id,
-          matricule: response.data.matricule,
-          qrCode: response.data.qrCode,
-          confirmedAt: response.data.confirmedAt,
-        })
-      );
-
-      // Passer à l'étape de confirmation
-      onNext();
-    } catch (error) {
-      console.error("Erreur lors de l'envoi:", error);
-
-      if (error.response?.data?.message) {
-        setUploadError(error.response.data.message);
-      } else {
-        setUploadError(
-          "Erreur lors de l'envoi des données. Veuillez réessayer."
-        );
+    // Envoyer au backend
+    const response = await axios.post(
+      `${API_URL}/api/v1/registrations`,
+      cleanedData,
+      {
+        headers: {
+          "Content-Type": "application/json", // ✅ JSON au lieu de form-data
+        },
       }
-    } finally {
-      setIsUploading(false);
+    );
+
+    console.log("✅ Réponse du backend:", response.data);
+
+    // Sauvegarder la réponse complète
+    setRegistrationResponse(response.data);
+
+    // Mettre à jour le localStorage avec la réponse du backend
+    localStorage.setItem(
+      "an-nour-registration",
+      JSON.stringify({
+        ...fullRegistrationData,
+        registrationId: response.data.id,
+        matricule: response.data.matricule, // ✅ Matricule généré par le backend
+        qrCode: response.data.qrCode,
+        confirmedAt: response.data.confirmedAt,
+      })
+    );
+
+    // Passer à l'étape de confirmation
+    onNext();
+    
+  } catch (error) {
+    console.error("❌ Erreur lors de l'envoi:", error);
+
+    if (error.response?.data?.message) {
+      setUploadError(error.response.data.message);
+    } else if (error.response?.data?.detail) {
+      setUploadError(error.response.data.detail);
+    } else {
+      setUploadError("Erreur lors de l'envoi des données. Veuillez réessayer.");
     }
-  };
+  } finally {
+    setIsUploading(false);
+  }
+};
+
 
   // ===== RENDER =====
 

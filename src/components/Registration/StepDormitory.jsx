@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import "./StepDormitory.css";
 
-const API_URL = 'http://192.168.1.25:8000'; // Ton API
+const API_URL =  process.env.REACT_APP_API_URL; // Ton API
 
 const StepDormitory = ({ data, sexe, onChange, onNext, onPrevious }) => {
   const [dortoirs, setDortoirs] = useState([]);
@@ -18,19 +18,19 @@ const StepDormitory = ({ data, sexe, onChange, onNext, onPrevious }) => {
         setApiError("");
 
         // ✅ Appel API pour récupérer les dortoirs par sexe
-        const response = await axios.get(`${API_URL}/api/dormitories`, {
+        const response = await axios.get(`${API_URL}/api/v1/registrations/dortoirs`, {
           params: { sexe: sexe }
         });
 
         console.log('Dortoirs récupérés:', response.data);
 
         // Format attendu: { dormitories: [{ id, name, capacity, available, sexe }] }
-        const dortoirsData = response.data.dormitories || response.data;
-        
+        const dortoirsData = response.data || response.data;
+        setDortoirs(dortoirsData);
         // Filtrer par sexe (au cas où le backend ne filtre pas)
-        const filteredDortoirs = dortoirsData.filter(d => d.sexe === sexe);
+        // const filteredDortoirs = dortoirsData.filter(d => d.sexe === sexe);
         
-        setDortoirs(filteredDortoirs);
+        // setDortoirs(filteredDortoirs);
         setLoading(false);
 
       } catch (err) {
@@ -51,16 +51,34 @@ const StepDormitory = ({ data, sexe, onChange, onNext, onPrevious }) => {
   const handleDormitorySelect = (dortoir) => {
     const available = dortoir.available || 0;
 
-    if (available > 0) {
-      onChange({
-        dortoir: dortoir.name,
-        dortoirId: dortoir.id,
-        matricule: "", // Sera généré par le backend
-      });
-      setError("");
-    } else {
-      setError(`Le dortoir "${dortoir.name}" est complet. Veuillez en choisir un autre.`);
-    }
+  // Ne rien faire si le dortoir est complet
+  if (available <= 0) {
+    setError(`Le dortoir "${dortoir.name}" est complet. Veuillez en choisir un autre.`);
+    return;
+  }
+
+  // Si on clique sur le dortoir déjà sélectionné, le désélectionner
+  if (data.dortoirId === dortoir.code) {
+    onChange({
+      dortoir: '',
+      dortoirId: '',
+      dortoirCode: '',
+      // matricule: ''
+    });
+    setError('');
+    return;
+  }
+
+  // Sinon, sélectionner le nouveau dortoir
+  onChange({
+    dortoir: dortoir.name,
+    dortoirId: dortoir.code,
+    dortoirCode: dortoir.code,
+    matricule: '', // Sera généré par le backend
+  });
+  setError('');
+  
+  console.log('Dortoir sélectionné:', dortoir.name, dortoir.code);
   };
 
   const handleSubmit = (e) => {
@@ -96,6 +114,7 @@ const StepDormitory = ({ data, sexe, onChange, onNext, onPrevious }) => {
             <button
               type="button"
               className="btn btn-secondary"
+              style={{margin:"0 5px"}}
               onClick={onPrevious}
             >
               ← Précédent
@@ -137,6 +156,7 @@ const StepDormitory = ({ data, sexe, onChange, onNext, onPrevious }) => {
             <button
               type="button"
               className="btn btn-secondary"
+              style={{margin:"0 5px"}}
               onClick={onPrevious}
             >
               ← Précédent
@@ -168,12 +188,13 @@ const StepDormitory = ({ data, sexe, onChange, onNext, onPrevious }) => {
             const available = dortoir.available || 0;
             const capacity = dortoir.capacity || 30;
             const isAvailable = available > 0;
-            const isSelected = data.dortoirId === dortoir.id;
+            const isSelected = data.dortoirId === dortoir.code;
+            console.log('isSelected', isSelected);
             const occupancyPercent = ((capacity - available) / capacity) * 100;
 
             return (
               <div
-                key={dortoir.id}
+                key={dortoir.code}
                 className={`dormitory-card ${!isAvailable ? "disabled" : ""} ${
                   isSelected ? "selected" : ""
                 }`}
@@ -219,6 +240,7 @@ const StepDormitory = ({ data, sexe, onChange, onNext, onPrevious }) => {
           <button
             type="button"
             className="btn btn-secondary"
+            style={{margin:"0 5px"}}
             onClick={onPrevious}
           >
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
@@ -229,6 +251,7 @@ const StepDormitory = ({ data, sexe, onChange, onNext, onPrevious }) => {
           <button 
             type="submit" 
             className="btn btn-primary"
+            style={{margin:"0 5px"}}
             disabled={!data.dortoir}
           >
             Continuer

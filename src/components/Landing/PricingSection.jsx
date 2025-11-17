@@ -1,5 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
+import logowave from "../../images/wave.png";
 import './PricingSection.css';
 
 const PricingSection = () => {
@@ -9,7 +10,7 @@ const PricingSection = () => {
     { icon: '🏠', text: 'Hébergement 6 jours / 5 nuits' },
     { icon: '🍽️', text: 'Restauration complète (3 repas/jour)' },
     { icon: '📋', text: 'Toutes les activités du programme' },
-    { icon: '🎒', text: 'Kit participant (badge, livret)' },
+    { icon: '🎒', text: 'Kit participant' },
     { icon: '📖', text: 'Cours de formation islamique' },
     { icon: '⚽', text: 'Activités sportives et récréatives' },
     { icon: '🏆', text: 'Certificat de participation' }
@@ -67,8 +68,8 @@ const PricingSection = () => {
 
             <div className="pricing-amount">
               <div className="amount-wrapper">
-                <span className="currency-symbol">FCFA</span>
                 <span className="amount">7 000</span>
+                <span className="currency-symbol">FCFA</span>
               </div>
               <p className="pricing-subtitle">Par participant</p>
             </div>
@@ -117,7 +118,9 @@ const PricingSection = () => {
             </button>
 
             <div className="payment-info">
-              <div className="payment-icon">💳</div>
+              <div className="payment-icon">
+                <img src={logowave} alt="logowave" style={{ width: '80px', height: '80px' }} />
+              </div>
               <div className="payment-text">
                 <span>Paiement sécurisé via</span>
                 <strong>Wave Mobile Money</strong>

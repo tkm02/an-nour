@@ -140,8 +140,8 @@ const LandingPage = () => {
                 <p>
                   <strong>AEEMCI</strong>
                 </p>
-                <p>Association des Élèves et Étudiants</p>
-                <p>Musulmans de Côte d'Ivoire</p>
+                <p>SERAE</p>
+                <p style={{fontFamily:"monospace",fontSize:"1.2em"}}>Sous-comité Cocody I & Sous-comité Bingerville</p>
               </div>
             </div>
 
@@ -176,9 +176,11 @@ const LandingPage = () => {
 
           <div className="footer-bottom">
             <p>
-              &copy; 2025 AEEMCI - Secrétariat Régional Abidjan Est. Tous droits
-              réservés.
+              &copy; AN NOUR 2025 - 7eme edition | (c) 2025 Tous droits réservés
             </p>
+            <span style={{fontStyle:"italic"}}>
+              Pour une spiritualite etincelante...
+            </span>
           </div>
         </div>
       </footer>

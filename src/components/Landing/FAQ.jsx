@@ -24,12 +24,12 @@ const FAQs = () => {
     {
       icon: '🎒',
       question: "Que dois-je apporter pour le séminaire ?",
-      answer: "Apportez vos effets personnels, vêtements pour 6 jours, articles de toilette, Coran, cahier et stylo. Les repas et le logement sont fournis."
+      answer: "Apportez vos effets personnels, vêtements pour 6 jours, articles de toilette, Qur'an, cahier et stylo. Les repas et le logement sont fournis."
     },
     {
       icon: '👥',
       question: "Le séminaire est-il ouvert à tous les âges ?",
-      answer: "Non, le séminaire est ouvert aux jeunes musulmans de plus de 5 ans, du primaire jusqu'aux professionnels."
+      answer: "Non, le séminaire est ouvert aux personnes de plus de 5 ans, du primaire jusqu'aux professionnels."
     },
   
     {

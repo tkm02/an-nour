@@ -11,14 +11,14 @@ const ProgramSection = () => {
     },
     {
       icon: '📖',
-      title: 'Nuit du Coran',
-      description: 'Récitation et méditation coranique nocturne',
+      title: "Nuit du Qur'an",
+      description: "Récitation et méditation de la parole d'ALLAH",
       color: 'from-purple-500 to-pink-500'
     },
     {
       icon: '🎓',
       title: 'Cours de formation',
-      description: 'Formations islamiques et développement personnel',
+      description: 'Formations islamiques et manageriales',
       color: 'from-green-500 to-teal-500'
     },
     {
@@ -35,17 +35,17 @@ const ProgramSection = () => {
     },
     {
       icon: '📚',
-      title: 'Apprentissage du Coran',
-      description: 'Sessions de mémorisation et tajwid',
+      title: 'Apprentissage du Qur’an',
+      description: 'Apprentissage de la lecture du Qur’an selon les niveaux',
       color: 'from-indigo-500 to-purple-500'
     }
   ];
 
   const dortoirs = {
     freres: [
-      { name: 'Nassr', meaning: 'Victoire', icon: '⭐' },
+      { name: 'Nassr', meaning: 'Secours', icon: '⭐' },
       { name: 'Basîr', meaning: 'Clairvoyance', icon: '👁️' },
-      { name: 'Hilm', meaning: 'Maîtrise de soi', icon: '🧘' },
+      { name: 'Hilm', meaning: 'Sagesse', icon: '🤍' },
       { name: 'Sidane', meaning: 'Gardien', icon: '🛡️' },
       { name: 'Furqân', meaning: 'Discernement', icon: '⚖️' },
       { name: 'Riyâdh', meaning: 'Jardins', icon: '🌿' }
@@ -54,7 +54,7 @@ const ProgramSection = () => {
       { name: 'Najma', meaning: 'Étoile', icon: '✨' },
       { name: 'Hidaya', meaning: 'Guidance', icon: '🧭' },
       { name: 'Rahma', meaning: 'Miséricorde', icon: '💚' },
-      { name: 'Sakîna', meaning: 'Sérénité', icon: '☮️' },
+      { name: 'Sakîna', meaning: 'Sérénité', icon: '❤️' },
       { name: 'Salwa', meaning: 'Réconfort', icon: '🤗' },
       { name: 'Zahra', meaning: 'Fleur / Pureté', icon: '🌸' },
       { name: 'Firdaous', meaning: 'Paradis', icon: '🌺' },
@@ -152,7 +152,7 @@ const ProgramSection = () => {
             <div className="dortoirs-category" data-aos="fade-right">
               <div className="category-header">
                 <div className="category-icon-wrapper">
-                  <span className="category-icon">👨</span>
+                  <span className="category-icon">👳</span>
                 </div>
                 <div>
                   <h3 className="category-title">Dortoirs Frères</h3>
@@ -195,7 +195,8 @@ const ProgramSection = () => {
             <div className="dortoirs-category" data-aos="fade-left">
               <div className="category-header">
                 <div className="category-icon-wrapper soeurs">
-                  <span className="category-icon">👩</span>
+                  {/* icon femme voilé */}
+                  <span className="category-icon">🧕</span>
                 </div>
                 <div>
                   <h3 className="category-title">Dortoirs Sœurs</h3>
