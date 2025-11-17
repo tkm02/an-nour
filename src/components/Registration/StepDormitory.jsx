@@ -22,7 +22,7 @@ const StepDormitory = ({ data, sexe, onChange, onNext, onPrevious }) => {
           params: { sexe: sexe }
         });
 
-        console.log('Dortoirs récupérés:', response.data);
+        // console.log('Dortoirs récupérés:', response.data);
 
         // Format attendu: { dormitories: [{ id, name, capacity, available, sexe }] }
         const dortoirsData = response.data || response.data;
@@ -78,7 +78,7 @@ const StepDormitory = ({ data, sexe, onChange, onNext, onPrevious }) => {
   });
   setError('');
   
-  console.log('Dortoir sélectionné:', dortoir.name, dortoir.code);
+  // console.log('Dortoir sélectionné:', dortoir.name, dortoir.code);
   };
 
   const handleSubmit = (e) => {
@@ -189,7 +189,7 @@ const StepDormitory = ({ data, sexe, onChange, onNext, onPrevious }) => {
             const capacity = dortoir.capacity || 30;
             const isAvailable = available > 0;
             const isSelected = data.dortoirId === dortoir.code;
-            console.log('isSelected', isSelected);
+            // console.log('isSelected', isSelected);
             const occupancyPercent = ((capacity - available) / capacity) * 100;
 
             return (

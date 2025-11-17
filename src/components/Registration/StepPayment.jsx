@@ -70,7 +70,7 @@ const StepPayment = ({
 
       setOcrProgress(100);
 
-      console.log("Résultat backend:", response.data);
+      // console.log("Résultat backend:", response.data);
       setVerificationResult(response.data);
 
       if (!response.data.isValid) {
@@ -157,7 +157,7 @@ const StepPayment = ({
       setIsUploading(true);
       setUploadError("");
 
-      console.log('🚀 Upload vers Cloudinary...');
+      // console.log('🚀 Upload vers Cloudinary...');
 
       // ✅ Upload vers Cloudinary
       const uploadResult = await uploadToCloudinary(receiptImage);
@@ -166,8 +166,8 @@ const StepPayment = ({
         throw new Error(uploadResult.error || 'Échec upload image');
       }
 
-      console.log('✅ Image uploadée:', uploadResult.url);
-      console.log('📦 Taille:', (uploadResult.size / 1024).toFixed(2), 'KB');
+      // console.log('✅ Image uploadée:', uploadResult.url);
+      // console.log('📦 Taille:', (uploadResult.size / 1024).toFixed(2), 'KB');
 
       // Préparer les données de paiement avec URL Cloudinary
       const paymentData = {
@@ -176,7 +176,7 @@ const StepPayment = ({
         receiptUrl: uploadResult.url, // ✅ URL Cloudinary
       };
 
-      console.log('💾 Sauvegarde des données:', paymentData);
+      // console.log('💾 Sauvegarde des données:', paymentData);
 
       // Sauvegarder dans localStorage
       const savedData = JSON.parse(localStorage.getItem("an-nour-registration") || "{}");
@@ -190,7 +190,7 @@ const StepPayment = ({
       setTransactionId(verificationResult.extractedData.transactionId);
       setPaymentStatus("completed");
 
-      console.log('✅ Upload terminé avec succès');
+      // console.log('✅ Upload terminé avec succès');
 
     } catch (error) {
       console.error("❌ Erreur upload:", error);
@@ -211,7 +211,7 @@ const StepPayment = ({
       localStorage.getItem("an-nour-registration") || "{}"
     );
 
-    console.log("📦 Données brutes du localStorage:", fullRegistrationData);
+    // console.log("📦 Données brutes du localStorage:", fullRegistrationData);
 
     // ✅ Nettoyer et préparer les données à envoyer
     const cleanedData = {
@@ -241,7 +241,7 @@ const StepPayment = ({
       }
     };
 
-    console.log("✅ Données nettoyées à envoyer:", cleanedData);
+    // console.log("✅ Données nettoyées à envoyer:", cleanedData);
 
     // Envoyer au backend
     const response = await axios.post(
@@ -254,7 +254,7 @@ const StepPayment = ({
       }
     );
 
-    console.log("✅ Réponse du backend:", response.data);
+    // console.log("✅ Réponse du backend:", response.data);
 
     // Sauvegarder la réponse complète
     // setRegistrationResponse(response.data);

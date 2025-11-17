@@ -6,7 +6,7 @@ const PDFGenerator = {
   generateRegistrationPDF: (data, qrCodeUrl) => {
     const doc = new jsPDF();
 
-    console.log('📄 Génération PDF avec données:', data);
+    // console.log('📄 Génération PDF avec données:', data);
 
     // Configuration
     const pageWidth = doc.internal.pageSize.width;
@@ -91,7 +91,7 @@ try {
   doc.addImage(logoAnnour, 'PNG', imgX, imgY, logoWidth, logoHeight);
 
 } catch (error) {
-  console.error('Erreur logo:', error);
+  throw error;
 }
 
 
@@ -130,7 +130,8 @@ try {
         doc.setLineWidth(0.5);
         doc.rect(pageWidth - margin - 48, yPos + 5, 40, 40, 'S');
       } catch (error) {
-        console.error('Erreur QR:', error);
+        throw error;
+        // console.error('Erreur QR:', error);
       }
     }
 
@@ -323,7 +324,7 @@ try {
       { align: 'center' }
     );
 
-    console.log('✅ PDF généré avec succès');
+    // console.log('✅ PDF généré avec succès');
 
     // Télécharger
     const filename = `Fiche-Inscription-AnNour-${matricule}.pdf`;
