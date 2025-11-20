@@ -24,15 +24,16 @@ const StepPayment = ({
 
   const calculateTotalAmount = () => {
     if (registrationType === "multiple" && data.children) {
-      return data.children.length * 1000;
+      return data.children.length * 7000;
     }
-    return 1000;
+    return 7000;
   };
 
   const totalAmount = calculateTotalAmount();
   const numberOfParticipants =
     registrationType === "multiple" ? data.children?.length || 0 : 1;
-  const wavePaymentUrl = `https://pay.wave.com/m/M_ci_EG_sCkR022Up/c/ci/?amount=${totalAmount}`;
+  // const wavePaymentUrl = `https://pay.wave.com/m/M_ci_EG_sCkR022Up/c/ci/?amount=${totalAmount}`;
+  const wavePaymentUrl = `https://pay.wave.com/m/M_ci_yHETaU64Fenl/c/ci/?amount=${totalAmount}`;
 
   // ===== VÉRIFICATION OCR VIA BACKEND =====
 
