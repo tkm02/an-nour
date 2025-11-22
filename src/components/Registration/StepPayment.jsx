@@ -505,12 +505,12 @@ const StepPayment = ({
               </div>
             )}
 
-            {uploadError && (
+            {/* {uploadError && (
               <div className="alert alert-error">
                 <span>⚠️</span>
                 <span>{uploadError}</span>
               </div>
-            )}
+            )} */}
 
             <button
               type="button"

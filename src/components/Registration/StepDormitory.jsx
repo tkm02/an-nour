@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import "./StepDormitory.css";
 
-const API_URL = process.env.REACT_APP_API_URL; // Your API base URL
+const API_URL ="https://an-nour-backend-5mf0.onrender.com" || process.env.REACT_APP_API_URL; // Your API base URL
 
 const StepDormitory = ({ data, sexe, onChange, onNext, onPrevious }) => {
   const [dortoirs, setDortoirs] = useState([]);
