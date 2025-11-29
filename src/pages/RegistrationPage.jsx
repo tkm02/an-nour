@@ -183,7 +183,6 @@ const RegistrationPage = () => {
           </div>
         </div>
       </header>
-      text
       <main className="reg-main">
         <div className="stepper-container">
           <Stepper steps={steps} currentStep={currentStep} />

@@ -5,6 +5,8 @@ import axios from 'axios';
 const CLOUD_NAME = process.env.REACT_APP_CLOUDINARY_CLOUD_NAME;
 const UPLOAD_PRESET = process.env.REACT_APP_CLOUDINARY_UPLOAD_PRESET;
  
+console.log('CLOUD_NAME:', CLOUD_NAME);
+console.log('UPLOAD_PRESET:', UPLOAD_PRESET);
 export const uploadToCloudinary = async (file) => {
   // Debug pour vérifier les variables
   // console.log('🔍 Config Cloudinary:', {
