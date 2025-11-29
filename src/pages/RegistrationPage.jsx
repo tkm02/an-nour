@@ -65,7 +65,7 @@ const RegistrationPage = () => {
       const sexe = formData.personalInfo.sexe;
 
       if (age >= 5 && age <= 11 && sexe) {
-        const targetName = sexe === "M" ? "Pépinière Homme" : "Pépinière Femme";
+        const targetName = sexe === "M" ? "Pépinière garçon" : "Pépinière fille";
 
         setFormData((prev) => ({
           ...prev,
