@@ -72,8 +72,8 @@ const RegistrationPage = () => {
           dormitoryInfo: {
             ...prev.dormitoryInfo,
             dortoir: targetName,
-            dortoirId: "PEPINIERE",
-            dortoirCode: "PEPINIERE",
+            dortoirId: targetName,
+            dortoirCode: targetName,
             matricule: "",
           },
         }));
