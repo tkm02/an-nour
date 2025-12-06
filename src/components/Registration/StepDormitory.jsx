@@ -3,7 +3,7 @@ import axios from "axios";
 import "./StepDormitory.css";
 
 const API_URL = process.env.REACT_APP_API_URL; // Your API base URL
-
+console.log("API_URL:", API_URL);
 const StepDormitory = ({ data, sexe, onChange, onNext, onPrevious }) => {
   const [dortoirs, setDortoirs] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -20,7 +20,7 @@ const StepDormitory = ({ data, sexe, onChange, onNext, onPrevious }) => {
 
         const response = await axios.get(
           `${API_URL}/api/v1/registrations/dortoirs`,
-          {
+          { 
             params: { sexe: sexe },
           }
         );

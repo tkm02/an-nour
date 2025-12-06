@@ -24,9 +24,9 @@ const StepPayment = ({
 
   const calculateTotalAmount = () => {
     if (registrationType === "multiple" && data.children) {
-      return data.children.length * 7000;
+      return data.children.length * 6000;
     }
-    return 7000;
+    return 6000;
   };
 
   const totalAmount = calculateTotalAmount();

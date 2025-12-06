@@ -272,11 +272,11 @@ try {
     // Liste des informations
     const importantInfo = [
       { label: 'Dates', value: '20 au 25 Decembre 2025' },
-      { label: 'Lieu', value: 'Lycee Moderne Cocody Angre, Abidjan' },
+      { label: 'Lieu', value: 'Lycee Moderne de Cocody, Abidjan' },
       { label: 'Heure d\'arrivee', value: 'Samedi 20 Decembre a partir de 14h00' },
       { label: 'A apporter', value: 'Effets personnels, vetements, toilette, Coran, cahier' },
       { label: 'QR Code', value: 'Presentez cette fiche a l\'entree le jour J' },
-      { label: 'Contacts', value: "+225 0545844135/ +225 0142080535" },
+      { label: 'Contacts', value: "+225 0545844135/ +225 0142080535 / +2250787944973" },
 
     ];
 

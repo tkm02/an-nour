@@ -279,6 +279,10 @@
   background: linear-gradient(135deg, #ec4899, #f472b6);
   box-shadow: 0 4px 20px rgba(236, 72, 153, 0.3);
 }
+.category-icon-wrapper.pepiniere {
+  background: linear-gradient(135deg,#ff9000,#d6bc9a);
+  box-shadow: 0 4px 20px rgba(236, 72, 153, 0.3);
+}
 
 .category-icon {
   font-size: 2rem;
@@ -317,6 +321,9 @@
 
 .dortoir-card.soeurs {
   border-left-color: #ec4899;
+}
+.dortoir-card.pepiniere {
+  border-left-color: #ff9000;
 }
 
 .dortoir-card:hover {

@@ -19,6 +19,8 @@ const RegistrationPage = () => {
       prenom: "",
       sexe: "",
       age: "",
+      contactParent: "",
+      contactSeminariste: "",
       communeHabitation: "",
       niveauAcademique: "",
     },

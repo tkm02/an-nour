@@ -162,7 +162,8 @@ const LandingPage = () => {
               <ul className="footer-links">
                 <li>📞 05 45 84 41 35</li>
                 <li>📞 01 42 08 05 37</li>
-                <li>📍 Lycée Moderne Cocody Angré</li>
+                <li>📞 07 87 94 49 73</li>
+                <li>📍 Lycée Moderne de Cocody</li>
                 <li>📅 20 - 25 Décembre 2025</li>
               </ul>
             </div>
@@ -202,4 +203,3 @@ const LandingPage = () => {
 };
 
 export default LandingPage;
-// ...existing code...

@@ -7,23 +7,44 @@ const StepPersonalInfo = ({ data, onChange, onNext }) => {
 
   // ✅ Structure hiérarchique des niveaux
   const niveauxAcademiques = {
-    "Primaire": ["CP1", "CP2", "CE1", "CE2", "CM1", "CM2"],
-    "Collège": ["6ème", "5ème", "4ème", "3ème"],
-    "Lycée": ["2nde", "1ère", "Terminale"],
-    "Licence": ["Licence 1", "Licence 2", "Licence 3"],
-    "Master": ["Master 1", "Master 2"],
-    "Ingenieur": ["Ingenieur 1", "Ingenieur 2", "Ingenieur 3"],
-    "Bts": ["Bts 1", "Bts 2"],
-    "Doctorat": ["Doctorat 1", "Doctorat 2", "Doctorat 3"],
-    "Professionnel": ["Professionnel"]
+    Primaire: ["CP1", "CP2", "CE1", "CE2", "CM1", "CM2"],
+    Collège: ["6ème", "5ème", "4ème", "3ème"],
+    Lycée: ["2nde", "1ère", "Terminale"],
+    Licence: ["Licence 1", "Licence 2", "Licence 3"],
+    Master: ["Master 1", "Master 2"],
+    Prepa: ["Prepa 1", "Prepa 2"],
+    Ingenieur: ["Ingenieur 1", "Ingenieur 2", "Ingenieur 3"],
+    Bts: ["Bts 1", "Bts 2"],
+    Doctorat: ["Doctorat 1", "Doctorat 2", "Doctorat 3"],
+    Professionnel: ["Professionnel"],
   };
 
   const communesCI = [
-    "Abobo", "Adjamé", "Attécoubé", "Cocody", "Koumassi", "Marcory",
-    "Plateau", "Port-Bouët", "Treichville", "Yopougon", "Bingerville",
-    "Songon", "Anyama", "Bouaké", "Daloa", "Korhogo", "San-Pédro",
-    "Yamoussoukro", "Man", "Gagnoa", "Divo", "Abengourou", "Agboville",
-    "Grand-Bassam", "Autre"
+    "Abobo",
+    "Adjamé",
+    "Attécoubé",
+    "Cocody",
+    "Koumassi",
+    "Marcory",
+    "Plateau",
+    "Port-Bouët",
+    "Treichville",
+    "Yopougon",
+    "Bingerville",
+    "Songon",
+    "Anyama",
+    "Bouaké",
+    "Daloa",
+    "Korhogo",
+    "San-Pédro",
+    "Yamoussoukro",
+    "Man",
+    "Gagnoa",
+    "Divo",
+    "Abengourou",
+    "Agboville",
+    "Grand-Bassam",
+    "Autre",
   ];
 
   const handleChange = (field, value) => {
@@ -57,6 +78,8 @@ const StepPersonalInfo = ({ data, onChange, onNext }) => {
     const newErrors = {};
     if (!data.nom.trim()) newErrors.nom = "Le nom est requis";
     if (!data.prenom.trim()) newErrors.prenom = "Le prénom est requis";
+    if (!data.contactParent?.trim())
+      newErrors.contactParent = "Le contact parent est requis";
     if (!data.sexe) newErrors.sexe = "Le sexe est requis";
     if (!data.age || data.age < 5 || data.age > 100) {
       newErrors.age = "L'âge doit être entre 5 et 100 ans";
@@ -67,7 +90,10 @@ const StepPersonalInfo = ({ data, onChange, onNext }) => {
 
     if (!data.communeHabitation.trim()) {
       newErrors.communeHabitation = "La commune d'habitation est requise";
-    } else if (data.communeHabitation === "Autre" && !data.communeAutre?.trim()) {
+    } else if (
+      data.communeHabitation === "Autre" &&
+      !data.communeAutre?.trim()
+    ) {
       newErrors.communeAutre = "Veuillez préciser votre commune";
     }
 
@@ -119,7 +145,9 @@ const StepPersonalInfo = ({ data, onChange, onNext }) => {
               className={errors.prenom ? "error" : ""}
               placeholder="Votre prénom"
             />
-            {errors.prenom && <span className="error-message">{errors.prenom}</span>}
+            {errors.prenom && (
+              <span className="error-message">{errors.prenom}</span>
+            )}
           </div>
         </div>
 
@@ -129,7 +157,9 @@ const StepPersonalInfo = ({ data, onChange, onNext }) => {
             Sexe <span className="required">*</span>
           </label>
           <div className="radio-group">
-            <label className={`radio-card ${data.sexe === "M" ? "active" : ""}`}>
+            <label
+              className={`radio-card ${data.sexe === "M" ? "active" : ""}`}
+            >
               <input
                 type="radio"
                 name="sexe"
@@ -142,7 +172,9 @@ const StepPersonalInfo = ({ data, onChange, onNext }) => {
                 <span>Masculin</span>
               </span>
             </label>
-            <label className={`radio-card ${data.sexe === "F" ? "active" : ""}`}>
+            <label
+              className={`radio-card ${data.sexe === "F" ? "active" : ""}`}
+            >
               <input
                 type="radio"
                 name="sexe"
@@ -178,13 +210,46 @@ const StepPersonalInfo = ({ data, onChange, onNext }) => {
             {errors.age && <span className="error-message">{errors.age}</span>}
           </div>
         </div>
+        {/* Contact Parent */}
+        <div className="form-group">
+          <label htmlFor="contactParent">
+            Contact Parent <span className="required">*</span>
+          </label>
+          <input
+            id="contactParent"
+            type="tel"
+            value={data.contactParent}
+            onChange={(e) => handleChange("contactParent", e.target.value)}
+            className={errors.contactParent ? "error" : ""}
+            placeholder="Ex: 0707123456"
+            maxLength="10"
+          />
+          {errors.contactParent && (
+            <span className="error-message">{errors.contactParent}</span>
+          )}
+        </div>
+
+        {/* Contact Séminariste (optionnel) */}
+        <div className="form-group">
+          <label htmlFor="contactSeminariste">
+            Contact Séminariste <span className="optional">(optionnel)</span>
+          </label>
+          <input
+            id="contactSeminariste"
+            type="tel"
+            value={data.contactSeminariste}
+            onChange={(e) => handleChange("contactSeminariste", e.target.value)}
+            placeholder="Ex: 0707123456"
+            maxLength="10"
+          />
+        </div>
 
         {/* ✅ Niveau académique en 2 étapes */}
         <div className="form-group">
           <label>
             Niveau académique <span className="required">*</span>
           </label>
-          
+
           {/* Étape 1 : Sélection du cycle */}
           <div className="niveau-selection">
             <div className="cycle-buttons">
@@ -192,7 +257,9 @@ const StepPersonalInfo = ({ data, onChange, onNext }) => {
                 <button
                   key={cycle}
                   type="button"
-                  className={`cycle-btn ${selectedCycle === cycle ? "active" : ""}`}
+                  className={`cycle-btn ${
+                    selectedCycle === cycle ? "active" : ""
+                  }`}
                   onClick={() => handleCycleChange(cycle)}
                 >
                   {cycle}
@@ -274,8 +341,19 @@ const StepPersonalInfo = ({ data, onChange, onNext }) => {
       <div className="form-actions">
         <button type="submit" className="btn btn-primary">
           Continuer
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+          <svg
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M9 5l7 7-7 7"
+            />
           </svg>
         </button>
       </div>

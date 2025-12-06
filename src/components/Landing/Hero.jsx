@@ -296,7 +296,7 @@ const Hero = () => {
                 </div>
                 <div className="stat-divider"></div>
                 <div className="stat-item">
-                  <div className="stat-number">7000</div>
+                  <div className="stat-number">6000</div>
                   <div className="stat-label">FCFA par personne</div>
                 </div>
                 <div className="stat-divider"></div>
