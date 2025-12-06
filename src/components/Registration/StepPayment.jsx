@@ -221,6 +221,8 @@ const StepPayment = ({
         prenom: fullRegistrationData.personalInfo.prenom,
         sexe: fullRegistrationData.personalInfo.sexe,
         age: fullRegistrationData.personalInfo.age,
+        contactParent: fullRegistrationData.personalInfo.contactParent,
+        contactSeminariste: fullRegistrationData?.personalInfo?.contactSeminariste || "",
         communeHabitation: fullRegistrationData.personalInfo.communeHabitation,
         niveauAcademique: fullRegistrationData.personalInfo.niveauAcademique,
         communeAutre: fullRegistrationData.personalInfo.communeAutre || ""
@@ -254,12 +256,9 @@ const StepPayment = ({
         },
       }
     );
-
     // console.log("✅ Réponse du backend:", response.data);
-
     // Sauvegarder la réponse complète
     // setRegistrationResponse(response.data);
-
     // Mettre à jour le localStorage avec la réponse du backend
     localStorage.setItem(
       "an-nour-registration",
@@ -271,10 +270,8 @@ const StepPayment = ({
         confirmedAt: response.data.confirmedAt,
       })
     );
-
     // Passer à l'étape de confirmation
     onNext();
-    
   } catch (error) {
     console.error("❌ Erreur lors de l'envoi:", error);
 
