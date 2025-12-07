@@ -20,7 +20,7 @@ const StepDormitory = ({ data, sexe, onChange, onNext, onPrevious }) => {
 
         const response = await axios.get(
           `${API_URL}/api/v1/registrations/dortoirs`,
-          { 
+          {
             params: { sexe: sexe },
           }
         );
@@ -193,19 +193,21 @@ const StepDormitory = ({ data, sexe, onChange, onNext, onPrevious }) => {
       <div className="step-form">
         <div className="no-availability-container">
           <div className="icon-large">🏠</div>
-          <h3>No Dormitories Available</h3>
+          <h3>Aucun Dortoir Disponible</h3>
           <p>
-            All {sexe === "M" ? "male" : "female"} dormitories are currently
-            full.
+            Tous les dortoirs {sexe === "M" ? "masculins" : "féminins"} sont
+            actuellement complets.
           </p>
+
           <div className="info-card">
             <p>
-              <strong>What to do?</strong>- Contact us at{" "}
-              <a href="tel:+225XXXXXXXX">+225 XX XX XX XX</a>- Send an email to{" "}
-              <a href="mailto:contact@annour.ci">contact@annour.ci</a>- Try
-              again later
+              <strong>Que faire ?</strong> – Contactez-nous au{" "}
+              <a href="tel:+2250787944973">+2250787944973</a> – Envoyez un email
+              à <a href="mailto:contact@annour.ci">contact@annour.ci</a> –
+              Réessayez plus tard
             </p>
           </div>
+
           <div className="form-actions">
             <button
               type="button"
@@ -213,7 +215,7 @@ const StepDormitory = ({ data, sexe, onChange, onNext, onPrevious }) => {
               style={{ margin: "0 5px" }}
               onClick={onPrevious}
             >
-              ← Previous
+              ← Précédent
             </button>
           </div>
         </div>
@@ -227,14 +229,14 @@ const StepDormitory = ({ data, sexe, onChange, onNext, onPrevious }) => {
   return (
     <div className="step-form">
       <div className="step-header">
-        <h2>🏠 Dormitory Selection</h2>
+        <h2>🏠 Sélection du Dortoir</h2>
         <p>
           {isPepiniereAge
             ? "Pour les 5-11 ans, le dortoir Pépinière est attribué automatiquement."
-            : "Select your dormitory from the available options"}
+            : "Sélectionnez votre dortoir parmi les options disponibles"}
         </p>
       </div>
-      text
+    
       {error && (
         <div className="alert alert-error">
           <span>⚠️</span>
@@ -275,7 +277,7 @@ const StepDormitory = ({ data, sexe, onChange, onNext, onPrevious }) => {
                   <div className="dormitory-card-header">
                     <h3 className="dormitory-name">{dortoir.name}</h3>
                     {isSelected && (
-                      <span className="selected-badge">✓ Selected</span>
+                      <span className="selected-badge">✓</span>
                     )}
                   </div>
 
@@ -283,7 +285,7 @@ const StepDormitory = ({ data, sexe, onChange, onNext, onPrevious }) => {
                     <div className="capacity-text">
                       <span className="available-count">{available}</span>
                       <span className="capacity-total">/{capacity}</span>
-                      <span className="capacity-label">places available</span>
+                      <span className="capacity-label">places disponible</span>
                     </div>
 
                     <div className="capacity-bar">
@@ -300,16 +302,16 @@ const StepDormitory = ({ data, sexe, onChange, onNext, onPrevious }) => {
 
                   <div
                     className={`availability-status ${
-                      isAvailable ? "available" : "full"
+                      isAvailable ? "disponible" : "indisponible"
                     }`}
                   >
-                    {isAvailable ? "✓ Available" : "✗ Full"}
+                    {isAvailable ? "✓ Disponible" : "✗ Indisponible"}
                   </div>
                 </div>
               );
             })
           ) : (
-            <p>No dormitories found. Please check your selection.</p>
+            <p>Aucun dortoir trouvé. Veuillez vérifier votre sélection.</p>
           )}
         </div>
 
@@ -334,7 +336,7 @@ const StepDormitory = ({ data, sexe, onChange, onNext, onPrevious }) => {
                 d="M15 19l-7-7 7-7"
               />
             </svg>
-            Previous
+            Précédent
           </button>
           <button
             type="submit"
@@ -342,7 +344,7 @@ const StepDormitory = ({ data, sexe, onChange, onNext, onPrevious }) => {
             style={{ margin: "0 5px" }}
             disabled={!data.dortoir}
           >
-            Continue
+            Suivant
             <svg
               width="20"
               height="20"

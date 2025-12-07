@@ -221,30 +221,30 @@ const StepPayment = ({
         prenom: fullRegistrationData.personalInfo.prenom,
         sexe: fullRegistrationData.personalInfo.sexe,
         age: fullRegistrationData.personalInfo.age,
-        contactParent: fullRegistrationData.personalInfo.contactParent,
-        contactSeminariste: fullRegistrationData?.personalInfo?.contactSeminariste || "",
         communeHabitation: fullRegistrationData.personalInfo.communeHabitation,
         niveauAcademique: fullRegistrationData.personalInfo.niveauAcademique,
-        communeAutre: fullRegistrationData.personalInfo.communeAutre || ""
+        communeAutre: fullRegistrationData.personalInfo.communeAutre || "",
+        contactParent: fullRegistrationData.personalInfo.contactParent,
+        contactSeminariste: fullRegistrationData?.personalInfo?.contactSeminariste || "", 
       },
       dormitoryInfo: {
-        dortoirId: fullRegistrationData.dormitoryInfo.dortoirCode,
         dortoir: fullRegistrationData.dormitoryInfo.dortoir,
+        dortoirId: fullRegistrationData.dormitoryInfo.dortoirCode,
         // ❌ Retirer: dortoir, matricule (sera généré par le backend)
       },
       healthInfo: {
         allergie: fullRegistrationData.healthInfo.allergie,
         antecedentMedical: fullRegistrationData.healthInfo.antecedentMedical
       },
-      paymentInfo: {
+      paymentInfo: { 
         transactionId: fullRegistrationData.paymentInfo.transactionId,
+        receiptUrl: fullRegistrationData.paymentInfo.receiptUrl,
         amount: fullRegistrationData.paymentInfo.amount,
-        receiptUrl: fullRegistrationData.paymentInfo.receiptUrl
         // ❌ Retirer: timestamp (sera généré par le backend)
       }
     };
 
-    // console.log("✅ Données nettoyées à envoyer:", cleanedData);
+    console.log("✅ Données nettoyées:", cleanedData);
 
     // Envoyer au backend
     const response = await axios.post(
@@ -256,7 +256,7 @@ const StepPayment = ({
         },
       }
     );
-    // console.log("✅ Réponse du backend:", response.data);
+    console.log("✅ Réponse du backend:", response.data);
     // Sauvegarder la réponse complète
     // setRegistrationResponse(response.data);
     // Mettre à jour le localStorage avec la réponse du backend
