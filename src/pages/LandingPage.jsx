@@ -1,10 +1,10 @@
 // ...existing code...
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import Hero from "../components/Landing/Hero";
-import ProgramSection from "../components/Landing/ProgramSection";
-import PricingSection from "../components/Landing/PricingSection";
 import FAQs from "../components/Landing/FAQ";
+import Hero from "../components/Landing/Hero";
+import PricingSection from "../components/Landing/PricingSection";
+import ProgramSection from "../components/Landing/ProgramSection";
 import logoAnnour from "../images/ANNOUR LOGO.PNG";
 import "./LandingPage.css";
 
@@ -94,6 +94,16 @@ const LandingPage = () => {
                 onClick={() => scrollToSection("faq")}
               >
                 <span className="nav-text">FAQ</span>
+                <span className="nav-indicator"></span>
+              </button>
+            </li>
+            <li>
+              <button
+                type="button"
+                className="nav-link"
+                onClick={() => navigate("/visiteurs")}
+              >
+                <span className="nav-text">Visiteur</span>
                 <span className="nav-indicator"></span>
               </button>
             </li>

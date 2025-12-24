@@ -1,5 +1,5 @@
 // services/api.js
-const API_URL = process.env.REACT_APP_API_URL;
+const API_URL = process.env.REACT_APP_API_URL || 'https://an-nour-backend-5mf0.onrender.com';
 
 // CREATE
 export const createRegistration = async (data) => {
@@ -38,6 +38,16 @@ export const updateRegistration = async (id, data) => {
 export const deleteRegistration = async (id) => {
   const response = await fetch(`${API_URL}/registrations/${id}`, {
     method: 'DELETE'
+  });
+  return response.json();
+};
+
+// VISITORS
+export const createVisitor = async (data) => {
+  const response = await fetch(`${API_URL}/api/v1/visiteurs`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data)
   });
   return response.json();
 };
