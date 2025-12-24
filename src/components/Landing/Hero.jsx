@@ -296,7 +296,7 @@ const Hero = () => {
                 </div>
                 <div className="stat-divider"></div>
                 <div className="stat-item">
-                  <div className="stat-number">7000</div>
+                  <div className="stat-number">6000</div>
                   <div className="stat-label">FCFA par personne</div>
                 </div>
                 <div className="stat-divider"></div>
@@ -369,7 +369,7 @@ const Hero = () => {
                 <div className="card-float float-2">
                   <div className="float-content">
                     <span className="float-icon">🎓</span>
-                    <span className="float-text">Savants Expérimentés</span>
+                    <span className="float-text">Certificat de participation</span>
                   </div>
                 </div>
               </div>

@@ -135,7 +135,7 @@ const FAQs = () => {
               <p className="contact-text">Notre équipe est là pour vous aider</p>
             </div>
             <div className="contact-actions">
-              <a href="tel:+2250545844135" className="btn btn-primary">
+              <a href="tel:+2250787944973" className="btn btn-primary">
                 <span>📞</span>
                 <span>Contactez-nous</span>
               </a>

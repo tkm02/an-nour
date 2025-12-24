@@ -155,7 +155,7 @@ const StepConfirmation = () => {
           </div>
           <ul className="info-list">
             <li><strong>Dates :</strong> 20 au 25 Décembre 2025</li>
-            <li><strong>Lieu :</strong> Lycée Moderne Cocody Angré, Abidjan</li>
+            <li><strong>Lieu :</strong> Lycée Moderne de Cocody, Abidjan</li>
             <li><strong>Heure d'arrivée :</strong> Vendredi 20 Décembre à partir de 14h00</li>
             <li><strong>À apporter :</strong> Effets personnels, vêtements, articles de toilette, Coran, cahier et stylo</li>
             <li><strong>QR Code :</strong> Présentez votre QR Code à l'entrée le jour J</li>
@@ -195,6 +195,9 @@ const StepConfirmation = () => {
           </a>
           <a href="tel:+2250142080537" className="support-link">
             📞 01 42 08 05 37
+          </a>
+          <a href="tel:+2250787944973" className="support-link">
+            📞 07 87 94 49 73
           </a>
         </div>
       </div>

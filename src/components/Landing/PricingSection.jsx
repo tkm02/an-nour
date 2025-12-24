@@ -10,7 +10,6 @@ const PricingSection = () => {
     { icon: '🏠', text: 'Hébergement 6 jours / 5 nuits' },
     { icon: '🍽️', text: 'Restauration complète (3 repas/jour)' },
     { icon: '📋', text: 'Toutes les activités du programme' },
-    { icon: '🎒', text: 'Kit participant' },
     { icon: '📖', text: 'Cours de formation islamique' },
     { icon: '⚽', text: 'Activités sportives et récréatives' },
     { icon: '🏆', text: 'Certificat de participation' }
@@ -68,7 +67,7 @@ const PricingSection = () => {
 
             <div className="pricing-amount">
               <div className="amount-wrapper">
-                <span className="amount">7 000</span>
+                <span className="amount">6 000</span>
                 <span className="currency-symbol">FCFA</span>
               </div>
               <p className="pricing-subtitle">Par participant</p>
@@ -146,6 +145,11 @@ const PricingSection = () => {
                 <a href="tel:+2250142080537" className="contact-link">
                   <span className="link-icon">📞</span>
                   <span>01 42 08 05 37</span>
+                </a>
+                <span className="separator"></span>
+                <a href="tel:+2250787944973" className="contact-link">
+                  <span className="link-icon">📞</span>
+                  <span>0787944973</span>
                 </a>
               </div>
               <p className="contact-hours">Disponible 7j/7 de 8h à 20h</p>

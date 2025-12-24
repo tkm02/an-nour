@@ -6,7 +6,7 @@ const PDFGenerator = {
   generateRegistrationPDF: (data, qrCodeUrl) => {
     const doc = new jsPDF();
 
-    console.log('📄 Génération PDF avec données:', data);
+    // console.log('📄 Génération PDF avec données:', data);
 
     // Configuration
     const pageWidth = doc.internal.pageSize.width;
@@ -91,7 +91,7 @@ try {
   doc.addImage(logoAnnour, 'PNG', imgX, imgY, logoWidth, logoHeight);
 
 } catch (error) {
-  console.error('Erreur logo:', error);
+  throw error;
 }
 
 
@@ -130,7 +130,8 @@ try {
         doc.setLineWidth(0.5);
         doc.rect(pageWidth - margin - 48, yPos + 5, 40, 40, 'S');
       } catch (error) {
-        console.error('Erreur QR:', error);
+        throw error;
+        // console.error('Erreur QR:', error);
       }
     }
 
@@ -271,11 +272,11 @@ try {
     // Liste des informations
     const importantInfo = [
       { label: 'Dates', value: '20 au 25 Decembre 2025' },
-      { label: 'Lieu', value: 'Lycee Moderne Cocody Angre, Abidjan' },
+      { label: 'Lieu', value: 'Lycee Moderne de Cocody, Abidjan' },
       { label: 'Heure d\'arrivee', value: 'Samedi 20 Decembre a partir de 14h00' },
       { label: 'A apporter', value: 'Effets personnels, vetements, toilette, Coran, cahier' },
       { label: 'QR Code', value: 'Presentez cette fiche a l\'entree le jour J' },
-      { label: 'Contacts', value: "+225 0545844135/ +225 0142080535" },
+      { label: 'Contacts', value: "+225 0545844135/ +225 0142080535 / +2250787944973" },
 
     ];
 
@@ -323,7 +324,7 @@ try {
       { align: 'center' }
     );
 
-    console.log('✅ PDF généré avec succès');
+    // console.log('✅ PDF généré avec succès');
 
     // Télécharger
     const filename = `Fiche-Inscription-AnNour-${matricule}.pdf`;

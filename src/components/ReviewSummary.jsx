@@ -77,7 +77,7 @@ const ReviewSummary = ({ data, currentStep }) => {
           <div className="section-content">
             <div className="amount-display">
               <span className="amount-label">Montant</span>
-              <span className="amount-value">7 000 FCFA</span>
+              <span className="amount-value">6 000 FCFA</span>
             </div>
           </div>
         </div>

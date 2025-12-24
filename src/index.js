@@ -2,9 +2,10 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 import App from './App';
+import './index.css';
 import LandingPage from './pages/LandingPage';
 import RegistrationPage from './pages/RegistrationPage';
-import './index.css';
+import VisitorRegistrationPage from './pages/VisitorRegistrationPage';
 
 const router = createBrowserRouter([
   {
@@ -18,6 +19,10 @@ const router = createBrowserRouter([
       {
         path: 'inscription',
         element: <RegistrationPage />
+      },
+      {
+        path: 'visiteurs',
+        element: <VisitorRegistrationPage />
       }
     ]
   }

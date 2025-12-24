@@ -1,0 +1,279 @@
+/* VisitorRegistrationPage.css */
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap');
+
+:root {
+  --primary-teal: #0f766e;
+  --secondary-teal: #14b8a6;
+  --primary-gold: #D4AF37;
+  --light-gold: #f3e5ab;
+  --dark-green: #0a3d2e;
+  --white: #ffffff;
+  --text-dark: #1f2937;
+  --text-light: #6b7280;
+  --error-red: #ef4444;
+  --shadow-lg: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+  --radius-xl: 1rem;
+}
+
+.visitor-page {
+  min-height: 100vh;
+  background: var(--white);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Background decorative elements */
+.visitor-page::before,
+.visitor-page::after {
+  content: '';
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(80px);
+  z-index: 0;
+}
+
+.visitor-page::before {
+  background: rgba(212, 175, 55, 0.15); /* Gold glow */
+  width: 300px;
+  height: 300px;
+  top: -50px;
+  left: -50px;
+}
+
+.visitor-page::after {
+  background: rgba(20, 184, 166, 0.15); /* Teal glow */
+  width: 400px;
+  height: 400px;
+  bottom: -100px;
+  right: -100px;
+}
+
+.visitor-container {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
+  border-radius: 24px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+  width: 100%;
+  max-width: 480px;
+  padding: 48px;
+  position: relative;
+  z-index: 10;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  animation: slideUp 0.5s ease-out forwards;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.visitor-header {
+  text-align: center;
+  margin-bottom: 32px;
+}
+
+.visitor-fetclogo, .visitor-logo {
+  height: 80px;
+  width: auto;
+  margin-bottom: 24px;
+  cursor: pointer;
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  filter: drop-shadow(0 4px 6px rgba(0,0,0,0.1));
+}
+
+.visitor-fetclogo:hover, .visitor-logo:hover {
+  transform: scale(1.05) rotate(-2deg);
+}
+
+.visitor-header h1 {
+  color: var(--dark-green);
+  font-size: 32px;
+  margin-bottom: 12px;
+  font-family: 'Playfair Display', serif;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+}
+
+.visitor-header p {
+  color: var(--text-light);
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+.visitor-form {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.form-group label {
+  font-weight: 600;
+  color: var(--dark-green);
+  font-size: 14px;
+  margin-left: 4px;
+}
+
+.form-group input {
+  padding: 14px 16px;
+  border: 2px solid #e1e8ed;
+  border-radius: 12px;
+  font-size: 16px;
+  transition: all 0.2s ease;
+  background: #f8fafc;
+  color: var(--text-dark);
+}
+
+.form-group input:focus {
+  border-color: var(--primary-teal);
+  background: white;
+  outline: none;
+  box-shadow: 0 0 0 4px rgba(15, 118, 110, 0.1);
+}
+
+.form-group input.input-error {
+  border-color: var(--error-red);
+  background-color: #fef2f2;
+}
+
+.form-group input.input-error:focus {
+  box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.1);
+}
+
+.error-text {
+  color: var(--error-red);
+  font-size: 13px;
+  margin-left: 4px;
+  font-weight: 500;
+}
+
+.form-group input::placeholder {
+  color: #adb5bd;
+}
+
+.form-actions {
+  display: flex;
+  gap: 16px;
+  margin-top: 24px;
+}
+
+.btn-primary, .btn-secondary {
+  flex: 1;
+  padding: 14px;
+  border-radius: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  font-size: 16px;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, var(--primary-teal) 0%, var(--secondary-teal) 100%);
+  color: white;
+  border: none;
+  box-shadow: 0 4px 12px rgba(15, 118, 110, 0.2);
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-primary:after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(rgba(255,255,255,0.2), transparent);
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(15, 118, 110, 0.3);
+}
+
+.btn-primary:hover:after {
+  opacity: 1;
+}
+
+.btn-primary:disabled {
+  background: #cbd5e1;
+  box-shadow: none;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.btn-secondary {
+  background: white;
+  border: 2px solid #e2e8f0;
+  color: var(--text-light);
+}
+
+.btn-secondary:hover {
+  background: #f8fafc;
+  border-color: #cbd5e1;
+  color: var(--text-dark);
+}
+
+.status-message {
+  padding: 16px;
+  border-radius: 12px;
+  font-size: 14px;
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-weight: 500;
+  animation: fadeIn 0.3s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.status-message.success {
+  background-color: #ecfdf5;
+  color: #065f46;
+  border: 1px solid #a7f3d0;
+}
+
+.status-message.error {
+  background-color: #fef2f2;
+  color: #991b1b;
+  border: 1px solid #fecaca;
+}
+
+/* Responsive adjustments */
+@media (max-width: 640px) {
+  .visitor-container {
+    padding: 32px 24px;
+  }
+
+  .visitor-header h1 {
+    font-size: 28px;
+  }
+  
+  .form-actions {
+    flex-direction: column-reverse;
+  }
+}

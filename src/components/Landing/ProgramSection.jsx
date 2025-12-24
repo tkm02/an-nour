@@ -59,6 +59,10 @@ const ProgramSection = () => {
       { name: 'Zahra', meaning: 'Fleur / Pureté', icon: '🌸' },
       { name: 'Firdaous', meaning: 'Paradis', icon: '🌺' },
       { name: 'Salam', meaning: 'Paix', icon: '🕊️' }
+    ],
+    pepiniere: [
+      { name: 'PEPINIERE-G', meaning: 'Dortoir garçons pépinière', icon: '👦' },
+      { name: 'PEPINIERE-F', meaning: 'Dortoir filles pépinière', icon: '👧' }
     ]
   };
 
@@ -225,6 +229,48 @@ const ProgramSection = () => {
                       <div className="dortoir-capacity">
                         <span className="capacity-icon">🛏️</span>
                         <span className="capacity-text">30 places</span>
+                      </div>
+                    </div>
+
+                    {/* Decorative Corner */}
+                    <div className="dortoir-corner"></div>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div className="dortoirs-category" data-aos="fade-left">
+              <div className="category-header">
+                <div className="category-icon-wrapper pepiniere">
+                  {/* icon femme voilé */}
+                  <span className="category-icon">🌱</span>
+                </div>
+                <div>
+                  <h3 className="category-title">Dortoirs Pepinières</h3>
+                  {/* <p className="category-subtitle">2 dortoirs disponibles</p> */}
+                </div>
+              </div>
+
+              <div className="dortoirs-grid">
+                {dortoirs.pepiniere.map((dortoir, index) => (
+                  <div
+                    key={index}
+                    className="dortoir-card pepiniere"
+                    data-aos="zoom-in"
+                    data-aos-delay={index * 50}
+                  >
+                    {/* Card Header */}
+                    <div className="dortoir-header">
+                      <span className="dortoir-icon">{dortoir.icon}</span>
+                      <div className="dortoir-name">{dortoir.name}</div>
+                    </div>
+
+                    {/* Card Body */}
+                    <div className="dortoir-body">
+                      <div className="dortoir-meaning">{dortoir.meaning}</div>
+                      <div className="dortoir-divider"></div>
+                      <div className="dortoir-capacity">
+                        <span className="capacity-icon">🛏️</span>
+                        <span className="capacity-text">50 places</span>
                       </div>
                     </div>
 

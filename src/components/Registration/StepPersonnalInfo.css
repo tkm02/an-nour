@@ -255,3 +255,13 @@
     padding: 0.625rem 0.75rem;
   }
 }
+.optional {
+  color: #6b7280;
+  font-weight: normal;
+  font-size: 0.85em;
+  margin-left: 4px;
+}
+
+input[type="tel"] {
+  letter-spacing: 0.5px;
+}

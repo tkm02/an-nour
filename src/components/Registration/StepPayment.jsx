@@ -4,7 +4,7 @@ import axios from "axios";
 import "./StepPayment.css";
 import { uploadToCloudinary } from "../../utils/cloudinaryUpload";
 
-const API_URL =  process.env.REACT_APP_API_URL; // Ton API
+const API_URL = process.env.REACT_APP_API_URL; // Ton API
 
 const StepPayment = ({
   data,
@@ -20,19 +20,20 @@ const StepPayment = ({
   const [uploadError, setUploadError] = useState("");
   const [ocrProgress, setOcrProgress] = useState(0);
   const [verificationResult, setVerificationResult] = useState(null);
-  const [registrationResponse, setRegistrationResponse] = useState(null);
+  // const [registrationResponse, setRegistrationResponse] = useState(null);
 
   const calculateTotalAmount = () => {
     if (registrationType === "multiple" && data.children) {
-      return data.children.length * 1000;
+      return data.children.length * 6000;
     }
-    return 1000;
+    return 6000;
   };
 
   const totalAmount = calculateTotalAmount();
   const numberOfParticipants =
     registrationType === "multiple" ? data.children?.length || 0 : 1;
-  const wavePaymentUrl = `https://pay.wave.com/m/M_ci_EG_sCkR022Up/c/ci/?amount=${totalAmount}`;
+  // const wavePaymentUrl = `https://pay.wave.com/m/M_ci_EG_sCkR022Up/c/ci/?amount=${totalAmount}`;
+  const wavePaymentUrl = `https://pay.wave.com/m/M_ci_yHETaU64Fenl/c/ci/?amount=${totalAmount}`;
 
   // ===== VÉRIFICATION OCR VIA BACKEND =====
 
@@ -70,7 +71,7 @@ const StepPayment = ({
 
       setOcrProgress(100);
 
-      console.log("Résultat backend:", response.data);
+      // console.log("Résultat backend:", response.data);
       setVerificationResult(response.data);
 
       if (!response.data.isValid) {
@@ -157,7 +158,7 @@ const StepPayment = ({
       setIsUploading(true);
       setUploadError("");
 
-      console.log('🚀 Upload vers Cloudinary...');
+      // console.log('🚀 Upload vers Cloudinary...');
 
       // ✅ Upload vers Cloudinary
       const uploadResult = await uploadToCloudinary(receiptImage);
@@ -166,8 +167,8 @@ const StepPayment = ({
         throw new Error(uploadResult.error || 'Échec upload image');
       }
 
-      console.log('✅ Image uploadée:', uploadResult.url);
-      console.log('📦 Taille:', (uploadResult.size / 1024).toFixed(2), 'KB');
+      // console.log('✅ Image uploadée:', uploadResult.url);
+      // console.log('📦 Taille:', (uploadResult.size / 1024).toFixed(2), 'KB');
 
       // Préparer les données de paiement avec URL Cloudinary
       const paymentData = {
@@ -176,7 +177,7 @@ const StepPayment = ({
         receiptUrl: uploadResult.url, // ✅ URL Cloudinary
       };
 
-      console.log('💾 Sauvegarde des données:', paymentData);
+      // console.log('💾 Sauvegarde des données:', paymentData);
 
       // Sauvegarder dans localStorage
       const savedData = JSON.parse(localStorage.getItem("an-nour-registration") || "{}");
@@ -190,7 +191,7 @@ const StepPayment = ({
       setTransactionId(verificationResult.extractedData.transactionId);
       setPaymentStatus("completed");
 
-      console.log('✅ Upload terminé avec succès');
+      // console.log('✅ Upload terminé avec succès');
 
     } catch (error) {
       console.error("❌ Erreur upload:", error);
@@ -211,7 +212,7 @@ const StepPayment = ({
       localStorage.getItem("an-nour-registration") || "{}"
     );
 
-    console.log("📦 Données brutes du localStorage:", fullRegistrationData);
+    // console.log("📦 Données brutes du localStorage:", fullRegistrationData);
 
     // ✅ Nettoyer et préparer les données à envoyer
     const cleanedData = {
@@ -222,26 +223,28 @@ const StepPayment = ({
         age: fullRegistrationData.personalInfo.age,
         communeHabitation: fullRegistrationData.personalInfo.communeHabitation,
         niveauAcademique: fullRegistrationData.personalInfo.niveauAcademique,
-        communeAutre: fullRegistrationData.personalInfo.communeAutre || ""
+        communeAutre: fullRegistrationData.personalInfo.communeAutre || "",
+        contactParent: fullRegistrationData.personalInfo.contactParent,
+        contactSeminariste: fullRegistrationData?.personalInfo?.contactSeminariste || "", 
       },
       dormitoryInfo: {
-        dortoirId: fullRegistrationData.dormitoryInfo.dortoirCode,
         dortoir: fullRegistrationData.dormitoryInfo.dortoir,
+        dortoirId: fullRegistrationData.dormitoryInfo.dortoirCode,
         // ❌ Retirer: dortoir, matricule (sera généré par le backend)
       },
       healthInfo: {
         allergie: fullRegistrationData.healthInfo.allergie,
         antecedentMedical: fullRegistrationData.healthInfo.antecedentMedical
       },
-      paymentInfo: {
+      paymentInfo: { 
         transactionId: fullRegistrationData.paymentInfo.transactionId,
+        receiptUrl: fullRegistrationData.paymentInfo.receiptUrl,
         amount: fullRegistrationData.paymentInfo.amount,
-        receiptUrl: fullRegistrationData.paymentInfo.receiptUrl
         // ❌ Retirer: timestamp (sera généré par le backend)
       }
     };
 
-    console.log("✅ Données nettoyées à envoyer:", cleanedData);
+    console.log("✅ Données nettoyées:", cleanedData);
 
     // Envoyer au backend
     const response = await axios.post(
@@ -253,12 +256,9 @@ const StepPayment = ({
         },
       }
     );
-
     console.log("✅ Réponse du backend:", response.data);
-
     // Sauvegarder la réponse complète
-    setRegistrationResponse(response.data);
-
+    // setRegistrationResponse(response.data);
     // Mettre à jour le localStorage avec la réponse du backend
     localStorage.setItem(
       "an-nour-registration",
@@ -270,10 +270,8 @@ const StepPayment = ({
         confirmedAt: response.data.confirmedAt,
       })
     );
-
     // Passer à l'étape de confirmation
     onNext();
-    
   } catch (error) {
     console.error("❌ Erreur lors de l'envoi:", error);
 

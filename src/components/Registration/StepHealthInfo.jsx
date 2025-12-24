@@ -142,7 +142,7 @@ const StepHealthInfo = ({ data, onChange, onNext, onPrevious }) => {
         </div>
 
         <div className="form-actions">
-          <button type="button" className="btn btn-secondary" onClick={onPrevious}>
+          <button type="button" className="btn btn-secondary" style={{ marginRight: '10px' }} onClick={onPrevious}>
             ← Précédent
           </button>
           <button type="submit" className="btn btn-primary">
