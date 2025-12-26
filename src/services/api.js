@@ -51,3 +51,13 @@ export const createVisitor = async (data) => {
   });
   return response.json();
 };
+
+// FEEDBACK
+export const createFeedback = async (data) => {
+  const response = await fetch(`${API_URL}/api/v1/feedbacks`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data)
+  });
+  return response.json();
+};

@@ -101,6 +101,16 @@ const LandingPage = () => {
               <button
                 type="button"
                 className="nav-link"
+                onClick={() => navigate("/avis")}
+              >
+                <span className="nav-text">Avis</span>
+                <span className="nav-indicator"></span>
+              </button>
+            </li>
+            <li>
+              <button
+                type="button"
+                className="nav-link"
                 onClick={() => navigate("/visiteurs")}
               >
                 <span className="nav-text">Visiteur</span>
@@ -192,6 +202,9 @@ const LandingPage = () => {
   </li>
   <li>
     <button type="button" className="footer-link" onClick={() => scrollToSection("faq")}>FAQ</button>
+  </li>
+  <li>
+    <button type="button" className="footer-link" onClick={() => navigate("/avis")}>Donner votre avis</button>
   </li>
 </ul>
 
