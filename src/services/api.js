@@ -53,11 +53,15 @@ export const createVisitor = async (data) => {
 };
 
 // FEEDBACK
+// FEEDBACK
 export const createFeedback = async (data) => {
-  const response = await fetch(`${API_URL}/api/v1/feedbacks`, {
+  const response = await fetch(`${API_URL}/api/v1/feedback`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data)
   });
+  if (!response.ok) {
+    throw new Error('Network response was not ok');
+  }
   return response.json();
 };

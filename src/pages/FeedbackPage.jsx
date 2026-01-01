@@ -46,8 +46,25 @@ const FeedbackPage = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
+    
+    // Map form state to API schema
+    const payload = {
+      sexe: formData.gender,
+      nom: formData.contactName,
+      note_globale: Number(formData.globalRating),
+      qualite_nourriture: Number(formData.cateringRating),
+      confort_dortoirs: Number(formData.accommodationRating),
+      qualite_formations: Number(formData.trainingRating),
+      qualite_contenu: Number(formData.contentQuality),
+      note_organisation: Number(formData.organizationRating),
+      duree_appropriee: formData.durationAppropriate === 'true',
+      recommande: formData.recommend === 'true',
+      points_apprecies: formData.likedAspects,
+      suggestions: formData.improvementAspects
+    };
+
     try {
-      await createFeedback(formData);
+      await createFeedback(payload);
       alert('Merci pour votre avis !');
       navigate('/');
     } catch (error) {
