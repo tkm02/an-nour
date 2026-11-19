@@ -38,10 +38,9 @@ jobs:
       - name: 📦 Install dependencies (lockfile strict)
         run: npm ci
 
-      # Rapport seulement tant que la suite est cassée (dette P-01) : ne pas présenter ce résultat comme vert
-      - name: 🧪 Run tests (report only — suite cassée, P-01)
-        run: npm test -- --watchAll=false --passWithNoTests
-        continue-on-error: true
+      # Bloquant : un test en échec arrête le job, donc le déploiement (needs: build-and-test)
+      - name: 🧪 Run tests
+        run: npm test -- --watchAll=false
         env:
           CI: true
 

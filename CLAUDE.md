@@ -32,7 +32,7 @@ Jest + Testing Library (via CRA) · Vercel.
 npm ci                                   # installation stricte (lockfile)
 cp .env.example .env                     # REACT_APP_API_URL=http://localhost:8000 (sans /api/v1)
 npm start                                # http://localhost:3000
-CI=true npx react-scripts test --watchAll=false   # tests (suite actuellement cassée : docs/TESTING.md)
+CI=true npx react-scripts test --watchAll=false   # tests (bloquants en CI : docs/TESTING.md)
 npm run build                            # build de production (ESLint CRA inclus) → build/
 ```
 

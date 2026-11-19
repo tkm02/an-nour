@@ -18,18 +18,17 @@ Stack réelle : Create React App (`react-scripts` 5.0.1) · React 19.2 · React 
 
 ## Commandes et baseline
 ```bash
-CI=true npx react-scripts test --watchAll=false   # tests (suite actuellement cassée, voir ci-dessous)
+CI=true npx react-scripts test --watchAll=false   # tests (bloquants en CI)
 CI=false npm run build                            # build de production (ESLint CRA inclus)
 ```
-Baseline : la suite de tests **ne démarre pas** (`Cannot find module 'react-router/dom'`, 0 test exécuté) ; build
-Réussi, 0 avertissement ESLint. Tant que la suite n'est pas réparée (tâche dédiée), rapporte les tests comme
-**Échoué (préexistant)** sans les masquer ; ne contourne jamais l'échec (`continue-on-error`, `--passWithNoTests`).
+Baseline : voir `docs/TESTING.md` §2 (suite exécutable depuis la vague 1 de dette, P-01) ; build Réussi,
+0 avertissement ESLint. Ne contourne jamais un échec (`continue-on-error`, `--passWithNoTests`, `skip`).
 
 ## Organisation des tests
 - Outil existant : Jest + Testing Library via `react-scripts test`, fichiers `src/**/*.test.js` à côté du code.
-- La suite est cassée (résolution de `react-router/dom` par Jest) : la réparer est une **tâche dédiée** (piste
-  `moduleNameMapper` ou ADR de migration de l'outillage). En attendant, n'annonce aucun test comme réussi.
-- Priorités quand la suite fonctionnera : validation de chaque étape d'inscription, charge envoyée à
+- Résolution de `react-router/dom` par Jest : `jest.moduleNameMapper` de `package.json` ; `TextEncoder` fourni
+  par `src/setupTests.js` (P-01).
+- Priorités : validation de chaque étape d'inscription, charge envoyée à
   `POST /api/v1/registrations`, gestion des erreurs de l'API (reçu rejeté, inscriptions closes, 429).
 - Les parcours écran restent « À valider manuellement » avec des étapes précises.
 

@@ -6,10 +6,10 @@
 
 | ID | Sévérité | Constat | Emplacement | Piste | Statut |
 |---|---|---|---|---|---|
-| P-01 | 🔴 | Suite de tests inexécutable (`Cannot find module 'react-router/dom'`) et masquée par `continue-on-error` ; seul test = gabarit CRA | `src/App.test.js`, CI | `TESTING.md` §3 | ouvert |
+| P-01 | 🔴 | Suite de tests inexécutable (`Cannot find module 'react-router/dom'`) et masquée par `continue-on-error` ; seul test = gabarit CRA | `src/App.test.js`, CI | `TESTING.md` §3 | **résolu** (vague 1, 2026-11-19) |
 | P-02 | 🟠 | Outillage Create React App non maintenu ; 63 avis npm dans l'outillage | `react-scripts` | ADR de migration (ex. Vite) | ouvert |
 | P-03 | 🟠 | Upload de reçus non signé vers Cloudinary | `src/utils/cloudinaryUpload.js` | restreindre le preset ; upload via l'API à terme | ouvert |
-| P-04 | 🟠 | CI : Node 18, `npm install`, pas de lint ni de scan de secrets, action de déploiement tierce non épinglée, déploiement même si les tests échouent | `.github/workflows/frontend-ci-cd.yml` | Phase 6 | **partiellement résolu** : Node 22, `npm ci`, gitleaks, action épinglée, déploiement après scan ; reste les tests en rapport (P-01) |
+| P-04 | 🟠 | CI : Node 18, `npm install`, pas de lint ni de scan de secrets, action de déploiement tierce non épinglée, déploiement même si les tests échouent | `.github/workflows/frontend-ci-cd.yml` | Phase 6 | **résolu** (vague 1, 2026-11-19) : Node 22, `npm ci`, gitleaks, action épinglée, déploiement après scan, tests bloquants |
 | P-05 | 🟠 | Parcours d'inscription (paiement compris) sans aucun test | `src/components/Registration/` | tests de caractérisation | ouvert |
 | P-06 | 🟡 | Données de santé et d'identité en `localStorage`, non effacées en cas d'abandon | `StepPayment.jsx`, `StepConfirmation.jsx` | tâche dédiée | ouvert |
 | P-07 | 🟡 | Code mort : `createRegistration`, `getRegistrations`, `getRegistration`, `updateRegistration`, `deleteRegistration` (chemins sans `/api/v1`) | `src/services/api.js` | supprimer | ouvert |
