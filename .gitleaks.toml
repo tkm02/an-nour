@@ -1,0 +1,6 @@
+# Configuration gitleaks (CI et hook pré-commit) : règles par défaut.
+# Ajouter ici uniquement des valeurs exactes connues comme non secrètes (jamais de motif large).
+title = "An-Nour site public"
+
+[extend]
+useDefault = true

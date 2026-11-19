@@ -8,7 +8,7 @@
 | Build | `react-scripts build` | — | OK |
 | CI | `frontend-ci-cd.yml` : `npm test -- --watchAll=false --passWithNoTests` en `continue-on-error` | — | échec masqué |
 
-## 2. Baseline (2026-11-19, Node 22.20 local ; le CI utilise Node 18)
+## 2. Baseline (2026-11-19, Node 22.20 local ; le CI utilisait Node 18, passé en Node 22 en Phase 6)
 | Commande | Résultat | Durée |
 |---|---|---|
 | `npm ls --depth=0` | arbre cohérent | 2 s |
@@ -24,3 +24,12 @@
    `POST /api/v1/registrations`, gestion des erreurs de l'API (reçu rejeté, inscriptions closes, 429).
 4. E2E (ADR) : parcours d'inscription complet contre une API de test, visiteurs, avis.
 5. Couverture : mesurer, puis « pas de baisse » et 80 % sur le nouveau code.
+
+## 4. Intégration continue (ADR 0002 du dépôt Backend — étape 1)
+| Contrôle | Mode |
+|---|---|
+| Tests Jest (`react-scripts test`) | **rapport** tant que la suite est cassée (P-01) — jamais présentés comme réussis |
+| Build (`react-scripts build`, ESLint inclus, avertissements = erreurs car `CI=true`) | bloquant |
+| gitleaks diff / historique | bloquant / rapport |
+| `npm audit --omit=dev` | rapport (63 vulnérabilités d'outillage CRA en baseline) |
+Vérifié en local le 2026-11-19 : `npm ci` + `CI=true npm run build` sous Node 22 → Réussi.

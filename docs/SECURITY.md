@@ -18,6 +18,6 @@
 |---|---|---|---|
 | P-S1 | 🟠 | `.env.example` contenait des valeurs réelles (nom de cloud, preset, clé d'API Cloudinary, URL) — **remplacées par des marqueurs en Phase 2**, mais présentes dans l'historique Git | la clé d'API Cloudinary seule n'est pas le secret ; vérifier les restrictions du preset et, par prudence, renouveler le preset s'il est trop permissif |
 | P-S2 | 🟠 | Preset d'upload non signé utilisable par n'importe qui | restrictions Cloudinary + surveillance du quota |
-| P-S3 | 🟠 | Workflow : Node 18 (fin de vie), `npm install`, tests en `continue-on-error`, pas de gitleaks, `amondnet/vercel-action@v25` non épinglé par SHA | Phase 6 |
+| P-S3 | 🟠 | Workflow : Node 18 (fin de vie), `npm install`, tests en `continue-on-error`, pas de gitleaks, `amondnet/vercel-action@v25` non épinglé par SHA | **partiellement traité** (ADR 0002 du Backend) : Node 22, `npm ci`, gitleaks, action épinglée ; tests encore en rapport (P-01) |
 | P-S4 | 🟡 | `localStorage` contenant des données de santé non effacé en cas d'abandon du parcours | tâche dédiée |
 | P-S5 | 🟡 | SDK serveur `cloudinary` dans les dépendances d'une application navigateur | retirer s'il est inutilisé |
