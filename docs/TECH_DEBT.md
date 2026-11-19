@@ -19,3 +19,4 @@
 | P-11 | 🟡 | `lang="en"`, titre « AN-NOUR2025 » | `public/index.html` | corriger | ouvert |
 | P-12 | 🟡 | `README.md` = gabarit CRA (complété d'une section projet en Phase 2) ; `REACT_APP_API_KEY` injectée par le CI mais non lue | `README.md`, CI | nettoyer | ouvert |
 | P-13 | 🟡 | `GET /registrations/status` non utilisé : le site ne sait pas à l'avance si les inscriptions sont closes | `src/pages/RegistrationPage.jsx` | afficher l'état avant le formulaire | ouvert |
+| P-14 | 🟡 | Hook pré-commit : détection de secrets seulement si `gitleaks` est installé localement ; aucun scan dans le CI (P-04) | `.husky/pre-commit` | gitleaks dans le CI (Phase 6) | ouvert |
