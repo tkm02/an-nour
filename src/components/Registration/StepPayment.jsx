@@ -19,6 +19,8 @@ const StepPayment = ({
   const [receiptPreview, setReceiptPreview] = useState(null);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadError, setUploadError] = useState("");
+  // Échec de l'envoi final : affiché quel que soit l'état de l'étape (P-23)
+  const [submitError, setSubmitError] = useState("");
   const [ocrProgress, setOcrProgress] = useState(0);
   const [verificationResult, setVerificationResult] = useState(null);
   // const [registrationResponse, setRegistrationResponse] = useState(null);
@@ -191,9 +193,11 @@ const StepPayment = ({
     }
   };
 
+  // Envoi final de l'inscription (aussi utilisé par « Réessayer » : ne relance jamais le paiement Wave)
   const handleConfirmPayment = async () => {
   try {
     setIsUploading(true);
+    setSubmitError("");
 
     // Récupérer toutes les données du localStorage
     const fullRegistrationData = JSON.parse(
@@ -257,7 +261,7 @@ const StepPayment = ({
     onNext();
   } catch (error) {
     // Aucune journalisation : l'erreur axios contient la charge envoyée (identité, santé) et la réponse
-    setUploadError(
+    setSubmitError(
       getApiErrorMessage(error, "Erreur lors de l'envoi des données. Veuillez réessayer.")
     );
   } finally {
@@ -592,6 +596,22 @@ const StepPayment = ({
                   </svg>
                 </>
               )}
+            </button>
+          </div>
+        )}
+
+        {/* Échec de l'envoi final : visible dans chaque état, relance sans nouveau paiement */}
+        {submitError && (
+          <div className="alert alert-error" role="alert">
+            <span aria-hidden="true">⚠️</span>
+            <span>{submitError}</span>
+            <button
+              type="button"
+              className="btn-text"
+              onClick={handleConfirmPayment}
+              disabled={isUploading}
+            >
+              {isUploading ? "Envoi en cours..." : "Réessayer"}
             </button>
           </div>
         )}

@@ -122,3 +122,63 @@ describe('StepPayment — journalisation (P-16)', () => {
     expect(journalContientDesDonnees(spies)).toEqual([]);
   });
 });
+
+describe("StepPayment — échec de l'envoi final (P-23, P-17)", () => {
+  const appelsInscription = () =>
+    axios.post.mock.calls.filter(([url]) => url.endsWith('/api/v1/registrations'));
+
+  test("affiche l'erreur de l'API et un bouton « Réessayer » après un échec", async () => {
+    reponseInscription = () =>
+      Promise.reject({ response: { status: 409, data: { detail: 'Le dortoir sélectionné est complet' } } });
+    const onNext = jest.fn();
+    const continuer = await allerJusquAuPaiementConfirme(onNext);
+    userEvent.click(continuer);
+
+    const alerte = await screen.findByRole('alert');
+    expect(alerte).toHaveTextContent('Le dortoir sélectionné est complet');
+    expect(screen.getByRole('button', { name: /réessayer/i })).toBeEnabled();
+    expect(onNext).not.toHaveBeenCalled();
+  });
+
+  test('« Réessayer » relance l’envoi avec la même charge, sans nouveau paiement', async () => {
+    let tentative = 0;
+    reponseInscription = () => {
+      tentative += 1;
+      return tentative === 1
+        ? Promise.reject(new Error('Network Error'))
+        : Promise.resolve({ data: REPONSE_INSCRIPTION });
+    };
+    const onNext = jest.fn();
+    const continuer = await allerJusquAuPaiementConfirme(onNext);
+    userEvent.click(continuer);
+
+    const alerte = await screen.findByRole('alert');
+    expect(alerte).toHaveTextContent(/impossible de contacter le serveur/i);
+
+    userEvent.click(screen.getByRole('button', { name: /réessayer/i }));
+
+    await waitFor(() => expect(onNext).toHaveBeenCalledTimes(1));
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+    expect(appelsInscription()).toHaveLength(2);
+    expect(appelsInscription()[1][1]).toEqual(appelsInscription()[0][1]);
+    // Aucun nouveau paiement : Wave ouvert une seule fois, pas de retour à l'étape « Payer »
+    expect(window.open).toHaveBeenCalledTimes(1);
+    expect(screen.queryByRole('button', { name: /payer .* avec wave/i })).not.toBeInTheDocument();
+  });
+
+  test('une erreur 422 (detail tableau) est affichée en message lisible, sans plantage', async () => {
+    reponseInscription = () =>
+      Promise.reject({
+        response: {
+          status: 422,
+          data: { detail: [{ loc: ['body', 'personalInfo', 'age'], msg: 'Input should be a valid integer' }] },
+        },
+      });
+    const continuer = await allerJusquAuPaiementConfirme();
+    userEvent.click(continuer);
+
+    const alerte = await screen.findByRole('alert');
+    expect(alerte).toHaveTextContent(/certaines informations de l'inscription sont invalides/i);
+    expect(alerte).not.toHaveTextContent(/input should be/i);
+  });
+});

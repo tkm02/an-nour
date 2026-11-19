@@ -11,6 +11,8 @@ Format : [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/) · versions : 
   réponse de l'API ni les erreurs axios qui les contiennent.
 - Paiement (P-17) : une erreur de validation 422 (`detail` tableau) ou une erreur réseau à l'envoi final est
   traduite en message lisible en français (`src/utils/apiErrors.js`) au lieu d'être rendue telle quelle.
+- Paiement (P-23) : l'échec de l'envoi final de l'inscription est affiché quel que soit l'état de l'étape, avec un
+  bouton « Réessayer » qui relance l'envoi sans redemander de paiement.
 ### Ajouté
 - Sécurité du cadre (revues du 2026-11-19) : hook `PreToolUse` de protection des secrets, permissions de l'assistant
   resserrées (`git branch`, `git diff --no-index`, exports, réécritures), CI durcie (SHA-256 de gitleaks épinglé,
