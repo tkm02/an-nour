@@ -13,6 +13,8 @@ Format : [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/) · versions : 
   traduite en message lisible en français (`src/utils/apiErrors.js`) au lieu d'être rendue telle quelle.
 - Paiement (P-23) : l'échec de l'envoi final de l'inscription est affiché quel que soit l'état de l'étape, avec un
   bouton « Réessayer » qui relance l'envoi sans redemander de paiement.
+- Accessibilité (P-25) : cartes dortoir, étoiles et échelle de la page Avis utilisables au clavier (radios natifs
+  nommés, masqués visuellement) ; champ du reçu atteignable au clavier ; contour de focus visible.
 ### Ajouté
 - Sécurité du cadre (revues du 2026-11-19) : hook `PreToolUse` de protection des secrets, permissions de l'assistant
   resserrées (`git branch`, `git diff --no-index`, exports, réécritures), CI durcie (SHA-256 de gitleaks épinglé,

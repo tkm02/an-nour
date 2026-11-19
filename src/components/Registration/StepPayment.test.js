@@ -182,3 +182,17 @@ describe("StepPayment — échec de l'envoi final (P-23, P-17)", () => {
     expect(alerte).not.toHaveTextContent(/input should be/i);
   });
 });
+
+describe('StepPayment — reçu accessible au clavier (P-25)', () => {
+  test('le champ du reçu est nommé, non masqué par display:none et atteint par Tab', () => {
+    render(<StepPayment data={DONNEES} onNext={jest.fn()} onPrevious={jest.fn()} />);
+    userEvent.click(screen.getByRole('button', { name: /payer 6.000 fcfa avec wave/i }));
+
+    const champ = screen.getByLabelText(/choisir une image/i);
+    expect(champ).toHaveAttribute('type', 'file');
+    expect(champ).not.toHaveStyle({ display: 'none' });
+
+    userEvent.tab();
+    expect(champ).toHaveFocus();
+  });
+});

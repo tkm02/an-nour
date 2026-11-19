@@ -244,7 +244,7 @@ const StepDormitory = ({ data, sexe, onChange, onNext, onPrevious }) => {
         </div>
       )}
       <form onSubmit={handleSubmit}>
-        <div className="dormitory-grid">
+        <div className="dormitory-grid" role="radiogroup" aria-label="Dortoirs">
           {Array.isArray(dortoirs) && dortoirs.length > 0 ? (
             dortoirs.map((dortoir) => {
               const available = dortoir.available || 0;
@@ -274,6 +274,23 @@ const StepDormitory = ({ data, sexe, onChange, onNext, onPrevious }) => {
                     isAvailable && clickable && handleDormitorySelect(dortoir)
                   }
                 >
+                  {/* Radio natif masqué visuellement : sélection au clavier (Tab, flèches, Espace) et nom
+                      accessible ; le clic souris reste géré par la carte (P-25) */}
+                  <input
+                    type="radio"
+                    name="dortoir"
+                    className="visually-hidden"
+                    value={dortoir.code}
+                    checked={isSelected}
+                    disabled={!isAvailable || !clickable}
+                    aria-label={`${dortoir.name} : ${
+                      isAvailable
+                        ? `${available} places disponibles sur ${capacity}`
+                        : "indisponible"
+                    }`}
+                    onClick={(e) => e.stopPropagation()}
+                    onChange={() => !isSelected && handleDormitorySelect(dortoir)}
+                  />
                   <div className="dormitory-card-header">
                     <h3 className="dormitory-name">{dortoir.name}</h3>
                     {isSelected && (

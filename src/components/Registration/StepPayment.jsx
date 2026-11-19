@@ -405,7 +405,7 @@ const StepPayment = ({
                   accept="image/*"
                   onChange={handleReceiptChange}
                   disabled={isUploading}
-                  style={{ display: "none" }}
+                  className="visually-hidden"
                 />
                 <div className="upload-content">
                   <div className="upload-icon">📤</div>
