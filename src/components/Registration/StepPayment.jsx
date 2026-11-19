@@ -3,6 +3,7 @@ import React, { useState } from "react";
 import axios from "axios";
 import "./StepPayment.css";
 import { uploadToCloudinary } from "../../utils/cloudinaryUpload";
+import { getApiErrorMessage } from "../../utils/apiErrors";
 
 const API_URL = process.env.REACT_APP_API_URL; // Ton API
 
@@ -256,13 +257,9 @@ const StepPayment = ({
     onNext();
   } catch (error) {
     // Aucune journalisation : l'erreur axios contient la charge envoyée (identité, santé) et la réponse
-    if (error.response?.data?.message) {
-      setUploadError(error.response.data.message);
-    } else if (error.response?.data?.detail) {
-      setUploadError(error.response.data.detail);
-    } else {
-      setUploadError("Erreur lors de l'envoi des données. Veuillez réessayer.");
-    }
+    setUploadError(
+      getApiErrorMessage(error, "Erreur lors de l'envoi des données. Veuillez réessayer.")
+    );
   } finally {
     setIsUploading(false);
   }

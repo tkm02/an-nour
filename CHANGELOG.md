@@ -9,6 +9,8 @@ Format : [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/) · versions : 
   test gabarit CRA remplacé par un test de fumée du routage ; tests bloquants en CI (`continue-on-error` retiré).
 - Sécurité (P-16) : l'étape Paiement ne journalise plus en console la charge d'inscription (identité, santé), la
   réponse de l'API ni les erreurs axios qui les contiennent.
+- Paiement (P-17) : une erreur de validation 422 (`detail` tableau) ou une erreur réseau à l'envoi final est
+  traduite en message lisible en français (`src/utils/apiErrors.js`) au lieu d'être rendue telle quelle.
 ### Ajouté
 - Sécurité du cadre (revues du 2026-11-19) : hook `PreToolUse` de protection des secrets, permissions de l'assistant
   resserrées (`git branch`, `git diff --no-index`, exports, réécritures), CI durcie (SHA-256 de gitleaks épinglé,
