@@ -4,8 +4,7 @@ import axios from "axios";
 import "./StepPayment.css";
 import { uploadToCloudinary } from "../../utils/cloudinaryUpload";
 import { getApiErrorMessage } from "../../utils/apiErrors";
-
-const API_URL = process.env.REACT_APP_API_URL; // Ton API
+import { API_URL } from "../../config";
 
 const StepPayment = ({
   data,

@@ -15,6 +15,9 @@ Format : [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/) · versions : 
   bouton « Réessayer » qui relance l'envoi sans redemander de paiement.
 - Accessibilité (P-25) : cartes dortoir, étoiles et échelle de la page Avis utilisables au clavier (radios natifs
   nommés, masqués visuellement) ; champ du reçu atteignable au clavier ; contour de focus visible.
+- Configuration (P-19) : URL de l'API lue par un module unique (`src/config.js`) ; plus de repli silencieux sur l'API
+  de production : erreur explicite si `REACT_APP_API_URL` manque au build de production, repli sur
+  `http://localhost:8000` en développement et en test. Journal de l'URL au chargement de l'étape Dortoir retiré.
 ### Ajouté
 - Sécurité du cadre (revues du 2026-11-19) : hook `PreToolUse` de protection des secrets, permissions de l'assistant
   resserrées (`git branch`, `git diff --no-index`, exports, réécritures), CI durcie (SHA-256 de gitleaks épinglé,
