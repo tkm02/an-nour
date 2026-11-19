@@ -14,7 +14,7 @@
 | P-06 | 🟡 | Données de santé et d'identité en `localStorage`, non effacées en cas d'abandon | `StepPayment.jsx`, `StepConfirmation.jsx` | tâche dédiée | ouvert |
 | P-07 | 🟡 | Code mort : `createRegistration`, `getRegistrations`, `getRegistration`, `updateRegistration`, `deleteRegistration` (chemins sans `/api/v1`) | `src/services/api.js` | supprimer | ouvert |
 | P-08 | 🟡 | Dépendances déclarées sans usage constaté : `tesseract.js`, `scribe.js-ocr`, `cloudinary` (SDK serveur), `@cloudinary/*` ; `@testing-library/*` en `dependencies` | `package.json` | nettoyer | ouvert |
-| P-09 | 🟡 | `fetch` direct dans les composants, base URL dupliquée | `StepDormitory.jsx`, `StepPayment.jsx` | centraliser dans `services/api.js` | ouvert |
+| P-09 | 🟡 | `fetch` direct dans les composants, base URL dupliquée | `StepDormitory.jsx`, `StepPayment.jsx` | centraliser dans `services/api.js` | **partiellement résolu** (vague 1, 2026-11-19) : base URL unique `src/config.js` (P-19) ; reste les appels axios directs des étapes Dortoir et Paiement |
 | P-10 | 🟡 | Variables CSS `:root` (bleues) sans rapport avec les couleurs affichées ; 3 polices | `src/index.css` | `DESIGN_SYSTEM.md` | ouvert |
 | P-11 | 🟡 | `lang="en"`, titre « AN-NOUR2025 » | `public/index.html` | corriger | ouvert |
 | P-12 | 🟡 | `README.md` = gabarit CRA (complété d'une section projet en Phase 2) ; `REACT_APP_API_KEY` injectée par le CI mais non lue | `README.md`, CI | nettoyer | ouvert |

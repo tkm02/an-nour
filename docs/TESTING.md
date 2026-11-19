@@ -3,7 +3,7 @@
 ## 1. Existant
 | Type | Outil | Où | État |
 |---|---|---|---|
-| Unitaires / composants | Jest + Testing Library (via `react-scripts test`) | `src/**/*.test.js` | suite exécutable (P-01) : test de fumée du routage (`src/App.test.js`) |
+| Unitaires / composants | Jest + Testing Library (via `react-scripts test`) | `src/**/*.test.js` | suite exécutable (P-01) : fumée du routage (`src/App.test.js`), configuration (`src/config.test.js`), erreurs d'API (`src/utils/apiErrors.test.js`), étapes Paiement et Dortoir, page Avis (`*.test.js` à côté des composants) |
 | Lint | ESLint `react-app` (exécuté par `npm run build`) | — | 0 avertissement |
 | Build | `react-scripts build` | — | OK |
 | CI | `frontend-ci-cd.yml` : `npm test -- --watchAll=false` | — | bloquant (déploiement conditionné) |
@@ -40,5 +40,7 @@ Vérifié en local le 2026-11-19 : `npm ci` + `CI=true npm run build` sous Node 
 ## 5. Résultats après la vague 1 de dette (2026-11-19, Node 22.20 local)
 | Commande | Résultat |
 |---|---|
-| `CI=true npx react-scripts test --watchAll=false` | **Réussi** — 1 suite, 1 test (fumée du routage) après P-01 |
-| `CI=true npm run build` | **Réussi** — « Compiled successfully » |
+| `CI=true npx react-scripts test --watchAll=false` | **Réussi** — 6 suites, 30 tests (P-01, P-16, P-17, P-19, P-23, P-25) |
+| `CI=true npm run build` | **Réussi** — « Compiled successfully » (0 avertissement ESLint) |
+| `npx eslint --max-warnings=0 "src/**/*.{js,jsx}"` | **Réussi** — 0 erreur, 0 avertissement (règles `react-app/jest` incluses) |
+Les parcours écran (rendu visuel, clavier réel, lecteur d'écran) restent **à valider manuellement**.

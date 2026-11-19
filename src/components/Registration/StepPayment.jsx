@@ -610,7 +610,7 @@ const StepPayment = ({
               onClick={handleConfirmPayment}
               disabled={isUploading}
             >
-              {isUploading ? "Envoi en cours..." : "Réessayer"}
+              Réessayer
             </button>
           </div>
         )}
