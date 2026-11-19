@@ -11,7 +11,7 @@
 | Données de santé et d'identité | conservées dans `localStorage` pendant le parcours, effacées à la confirmation | minimiser ; effacer aussi en cas d'abandon ; ne rien journaliser |
 | Abus (spam d'inscriptions, d'avis) | limitation de débit côté API | pas de logique de sécurité côté navigateur |
 | Dépendances | 63 avis npm, tous dans l'outillage `react-scripts` (non embarqué) | migration hors CRA (ADR) |
-| CI | pas de scan de secrets ; tests non bloquants ; action Vercel tierce avec `VERCEL_TOKEN` | Phase 6 |
+| CI | gitleaks bloquant sur le diff, action Vercel épinglée par SHA, environnement `production` ; tests encore en rapport (P-01) ; `VERCEL_TOKEN` à passer en secret d'environnement | ADR 0002 (dépôt Backend) |
 
 ## 2. Constats ouverts (audit du 2026-11-19)
 | # | Sévérité | Constat | Piste |
