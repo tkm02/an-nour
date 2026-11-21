@@ -4,39 +4,22 @@
 // Règles alignées sur l'API : noms 1–80 caractères avec au moins une lettre, âge de 10 à 100 ans, téléphone de
 // 10 chiffres (avec ou sans +225 / 00225 / espaces), email valide, textes de santé ≤ 1000 caractères.
 
+import { formaterTelephone, INDICATIF_CI, normaliserTelephone, validerTelephone } from "../commun/telephone";
+
 export const NOM_MAX = 80;
 export const TEXTE_SANTE_MAX = 1000;
 export const AGE_MIN = 10;
 export const AGE_MAX = 100;
-export const INDICATIF_CI = "225";
 export const VALEUR_AUCUNE_COMMISSION = "__aucune__";
+
+// Téléphone : règles communes (src/utils/commun/telephone.js), ré-exportées pour le formulaire CO
+export { INDICATIF_CI, formaterTelephone, normaliserTelephone, validerTelephone };
 
 const LETTRE = /[A-Za-zÀ-ÖØ-öø-ÿ]/;
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 const DATE_ISO = /^(\d{4})-(\d{2})-(\d{2})$/;
 
 const texte = (valeur) => (typeof valeur === "string" ? valeur.trim() : "");
-
-/** Numéro national à 10 chiffres, ou null si la saisie n'en est pas un. */
-export const normaliserTelephone = (valeur) => {
-  if (typeof valeur !== "string" || !valeur.trim()) {
-    return null;
-  }
-  let chiffres = valeur.replace(/\D/g, "");
-  if (valeur.trim().startsWith("00")) {
-    chiffres = chiffres.slice(2);
-  }
-  if (chiffres.startsWith(INDICATIF_CI) && chiffres.length === 13) {
-    chiffres = chiffres.slice(INDICATIF_CI.length);
-  }
-  return /^\d{10}$/.test(chiffres) ? chiffres : null;
-};
-
-/** Affichage lisible « 07 00 00 00 00 » (la saisie est renvoyée telle quelle si elle n'est pas un numéro valide). */
-export const formaterTelephone = (valeur) => {
-  const numero = normaliserTelephone(valeur);
-  return numero ? numero.replace(/(\d{2})(?=\d)/g, "$1 ") : valeur || "";
-};
 
 /** Date « AAAA-MM-JJ » réellement existante → objet {annee, mois, jour}, sinon null. */
 const lireDate = (valeur) => {
@@ -99,12 +82,6 @@ export const validerDateNaissance = (valeur, aujourdHui = new Date()) => {
   const age = calculerAge(valeur, aujourdHui);
   if (age === null) return "Date invalide (format JJ/MM/AAAA).";
   if (age < AGE_MIN || age > AGE_MAX) return `Date de naissance invalide (âge attendu entre ${AGE_MIN} et ${AGE_MAX} ans).`;
-  return "";
-};
-
-export const validerTelephone = (valeur) => {
-  if (!texte(valeur)) return "Le numéro de téléphone est obligatoire.";
-  if (!normaliserTelephone(valeur)) return "Numéro invalide : 10 chiffres, par exemple 07 00 00 00 00.";
   return "";
 };
 

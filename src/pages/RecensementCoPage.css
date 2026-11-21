@@ -4,7 +4,10 @@
    avec les autres pages, toutes les feuilles de style étant chargées globalement. */
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
 
-.rco-page {
+/* Jetons de couleur partagés : page du recensement CO et formulaires publics qui réutilisent ces styles
+   (recherche de réinscription des séminaristes, classe .rco-formulaire-public). */
+.rco-page,
+.rco-formulaire-public {
   /* Palette (valeurs déjà utilisées par le site public, alignées sur les tokens communs --an-*) */
   --rco-teal-700: #0f766e; /* --an-teal-700, 5,5:1 sur blanc */
   --rco-teal-800: #0d5e57; /* --primary-dark de RegistrationPage.css : survol */
@@ -43,7 +46,15 @@
   --rco-rayon: 0.75rem;
   --rco-rayon-petit: 0.5rem;
   --rco-ombre: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
 
+.rco-formulaire-public {
+  color: var(--rco-texte);
+  font-size: 1rem;
+  line-height: 1.5;
+}
+
+.rco-page {
   min-height: 100vh;
   background: var(--rco-fond-page);
   color: var(--rco-texte);

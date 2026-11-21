@@ -37,6 +37,7 @@ import {
   valeursFicheInitiales,
 } from "../utils/recensementCo/requetes";
 import { CHAMPS_FICHE, CHAMPS_IDENTIFICATION, VALEUR_AUCUNE_COMMISSION } from "../utils/recensementCo/validation";
+import useAttenteLongue from "../utils/commun/useAttenteLongue";
 import "./RecensementCoPage.css";
 
 const ETAPES = ["Identité", "Fiche", "Envoi"];
@@ -48,27 +49,12 @@ const TITRES = {
 };
 // L'API refuse une identification moins de 3 s après l'émission du jeton du formulaire : marge de sécurité
 const DELAI_MINIMAL_MS = 3500;
-const DELAI_MESSAGE_ATTENTE_MS = 6000;
 const PHOTO_VIDE = { fichier: null, urlExistante: null, supprimerExistante: false };
 const REQUETE_LIBRE = { enCours: false, erreur: null };
 // « Commission inconnue » (422 texte de l'API) rattaché au champ concerné
 const COMMISSION_INCONNUE = "commission inconnue";
 
 const pause = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
-
-/** Vrai lorsque `actif` dure depuis plus de `delai` ms (démarrage à froid de l'API). */
-const useAttenteLongue = (actif, delai = DELAI_MESSAGE_ATTENTE_MS) => {
-  const [longue, setLongue] = useState(false);
-  useEffect(() => {
-    if (!actif) {
-      setLongue(false);
-      return undefined;
-    }
-    const minuterie = setTimeout(() => setLongue(true), delai);
-    return () => clearTimeout(minuterie);
-  }, [actif, delai]);
-  return longue;
-};
 
 /** Zone aria-live montée vide, puis remplie (sinon le premier message n'est pas annoncé). */
 const MessageAttente = ({ actif, longue, texte }) => {

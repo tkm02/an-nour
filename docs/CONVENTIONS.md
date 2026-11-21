@@ -33,3 +33,7 @@
   propre ; seuls les composants réutilisables ou spécifiques (`CoStepper`, `PhotoField`, `IdPhotoPlaceholder`) ont
   leur fichier CSS. Écart assumé à la règle « un CSS par composant ».
 - **Progression** dans `sessionStorage` (onglet), jamais date de naissance, téléphone, santé ni jetons.
+- **Utilitaires communs** aux formulaires publics (TAF lot 2) : `src/utils/commun/` (téléphone, erreurs de l'API,
+  attente du démarrage à froid) et `src/services/clientApi.js` (client `fetch`) ; les modules du recensement CO
+  les ré-exportent. Les formulaires qui réutilisent les classes `rco-*` importent `RecensementCoPage.css` et se
+  placent dans un conteneur `.rco-formulaire-public` (jetons de couleur).

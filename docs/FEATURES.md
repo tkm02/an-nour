@@ -6,6 +6,7 @@
 | Fonctionnalité | Route | Fichiers | API (`/api/v1`) | Tests | État |
 |---|---|---|---|---|---|
 | Accueil : présentation, programme, tarifs, FAQ | `/` | `pages/LandingPage.jsx`, `components/Landing/*` | — | aucun | stable (contenu statique) |
+| Inscription — réinscription (inscrit l'an dernier ?) | `/inscription` (écran préalable) | `pages/RegistrationPage.jsx`, `Registration/ReinscriptionRecherche.jsx`, `services/inscription.js`, `utils/inscription/*` | `GET /registrations/status`, `GET /registrations/reinscription/configuration`, `POST /registrations/reinscription/recherche`, `POST /registrations` (`reinscription`) | Jest (logique, service, parcours, paiement) | nouveau — recette navigateur à faire |
 | Inscription — identité | `/inscription` (étape 1) | `StepPersonalInfo.jsx` | — | aucun | partiel |
 | Inscription — informations de santé | étape 2 | `StepHealthInfo.jsx` | — | aucun | partiel (données sensibles en `localStorage`) |
 | Inscription — choix du dortoir | étape 3 | `StepDormitory.jsx` | `GET /registrations/dortoirs` | aucun | partiel |
