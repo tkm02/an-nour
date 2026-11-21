@@ -1,16 +1,25 @@
 // src/components/Registration/StepPayment.jsx
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import axios from "axios";
 import "./StepPayment.css";
 import { uploadToCloudinary } from "../../utils/cloudinaryUpload";
 import { getApiErrorMessage } from "../../utils/apiErrors";
 import { API_URL } from "../../config";
+import { completerInscription, ecrireInscription, inscriptionComplete } from "../../utils/inscription/stockage";
+import {
+  construireInscription,
+  MESSAGE_SESSION_REINSCRIPTION,
+  typeErreurReinscription,
+} from "../../utils/inscription/reinscription";
 
 const StepPayment = ({
   data,
   onNext,
   onPrevious,
   registrationType = "single",
+  // Réinscription (TAF lot 2) : jeton en mémoire uniquement, renouvelé automatiquement s'il a expiré
+  jetonReinscription = null,
+  onRenouvelerReinscription,
 }) => {
   const [paymentStatus, setPaymentStatus] = useState("pending");
   const [transactionId, setTransactionId] = useState("");
@@ -22,6 +31,9 @@ const StepPayment = ({
   const [submitError, setSubmitError] = useState("");
   const [ocrProgress, setOcrProgress] = useState(0);
   const [verificationResult, setVerificationResult] = useState(null);
+  // Garde contre le double clic sur l'envoi final : un ref est lu immédiatement, contrairement à l'état
+  // `isUploading` qui n'est à jour qu'au rendu suivant
+  const envoiEnCours = useRef(false);
   // const [registrationResponse, setRegistrationResponse] = useState(null);
 
   const calculateTotalAmount = () => {
@@ -103,16 +115,14 @@ const StepPayment = ({
   // ===== HANDLERS =====
 
   const handleInitiatePayment = () => {
-    localStorage.setItem(
-      "an-nour-registration",
-      JSON.stringify({
-        ...data,
-        paymentInfo: {
-          status: "awaiting_proof",
-          amount: totalAmount,
-        },
-      })
-    );
+    // Stockage de l'onglet, sans santé ni jeton (src/utils/inscription/stockage.js)
+    ecrireInscription({
+      ...data,
+      paymentInfo: {
+        status: "awaiting_proof",
+        amount: totalAmount,
+      },
+    });
 
     window.open(wavePaymentUrl, "_blank");
     setPaymentStatus("awaiting_proof");
@@ -172,14 +182,8 @@ const StepPayment = ({
         receiptUrl: uploadResult.url, // ✅ URL Cloudinary
       };
 
-      // Sauvegarder dans localStorage
-      const savedData = JSON.parse(localStorage.getItem("an-nour-registration") || "{}");
-      const updatedData = {
-        ...savedData,
-        paymentInfo: paymentData,
-      };
-
-      localStorage.setItem("an-nour-registration", JSON.stringify(updatedData));
+      // Conserver la preuve de paiement (stockage de l'onglet, sans santé ni jeton)
+      completerInscription({ paymentInfo: paymentData });
 
       setTransactionId(verificationResult.extractedData.transactionId);
       setPaymentStatus("completed");
@@ -193,81 +197,69 @@ const StepPayment = ({
   };
 
   // Envoi final de l'inscription (aussi utilisé par « Réessayer » : ne relance jamais le paiement Wave)
-  const handleConfirmPayment = async () => {
-  try {
-    setIsUploading(true);
-    setSubmitError("");
-
-    // Récupérer toutes les données du localStorage
-    const fullRegistrationData = JSON.parse(
-      localStorage.getItem("an-nour-registration") || "{}"
-    );
-
-    // ✅ Nettoyer et préparer les données à envoyer
-    const cleanedData = {
-      personalInfo: {
-        nom: fullRegistrationData.personalInfo.nom,
-        prenom: fullRegistrationData.personalInfo.prenom,
-        sexe: fullRegistrationData.personalInfo.sexe,
-        age: fullRegistrationData.personalInfo.age,
-        communeHabitation: fullRegistrationData.personalInfo.communeHabitation,
-        niveauAcademique: fullRegistrationData.personalInfo.niveauAcademique,
-        communeAutre: fullRegistrationData.personalInfo.communeAutre || "",
-        contactParent: fullRegistrationData.personalInfo.contactParent,
-        contactSeminariste: fullRegistrationData?.personalInfo?.contactSeminariste || "", 
-      },
-      dormitoryInfo: {
-        dortoir: fullRegistrationData.dormitoryInfo.dortoir,
-        dortoirId: fullRegistrationData.dormitoryInfo.dortoirCode,
-        // ❌ Retirer: dortoir, matricule (sera généré par le backend)
-      },
-      healthInfo: {
-        allergie: fullRegistrationData.healthInfo.allergie,
-        antecedentMedical: fullRegistrationData.healthInfo.antecedentMedical
-      },
-      paymentInfo: { 
-        transactionId: fullRegistrationData.paymentInfo.transactionId,
-        receiptUrl: fullRegistrationData.paymentInfo.receiptUrl,
-        amount: fullRegistrationData.paymentInfo.amount,
-        // ❌ Retirer: timestamp (sera généré par le backend)
-      }
-    };
-
-    // Envoyer au backend
-    const response = await axios.post(
+  const envoyerInscription = (jeton) =>
+    axios.post(
       `${API_URL}/api/v1/registrations`,
-      cleanedData,
-      {
-        headers: {
-          "Content-Type": "application/json", // ✅ JSON au lieu de form-data
-        },
-      }
+      // Identité, dortoir et santé lus en mémoire ; preuve de paiement lue dans le stockage de l'onglet
+      construireInscription(inscriptionComplete(data), jeton),
+      { headers: { "Content-Type": "application/json" } }
     );
-    // Sauvegarder la réponse complète
-    // setRegistrationResponse(response.data);
-    // Mettre à jour le localStorage avec la réponse du backend
-    localStorage.setItem(
-      "an-nour-registration",
-      JSON.stringify({
-        ...fullRegistrationData,
+
+  const handleConfirmPayment = async () => {
+    // Garde contre le double clic (bouton « Continuer » ou « Réessayer »)
+    if (envoiEnCours.current) return;
+    envoiEnCours.current = true;
+    try {
+      setIsUploading(true);
+      setSubmitError("");
+
+      let response;
+      try {
+        response = await envoyerInscription(jetonReinscription);
+      } catch (error) {
+        // Jeton de réinscription expiré (30 min) : nouvelle recherche automatique avec la saisie conservée en
+        // mémoire, puis un seul nouvel essai (le paiement déjà effectué n'est pas redemandé)
+        if (jetonReinscription && onRenouvelerReinscription && typeErreurReinscription(error) === "session") {
+          let nouveauJeton;
+          try {
+            nouveauJeton = await onRenouvelerReinscription();
+          } catch (renouvellement) {
+            if (renouvellement?.dejaInscrit) throw renouvellement;
+            throw Object.assign(new Error(MESSAGE_SESSION_REINSCRIPTION), { sessionReinscription: true });
+          }
+          response = await envoyerInscription(nouveauJeton);
+        } else {
+          throw error;
+        }
+      }
+
+      completerInscription({
         registrationId: response.data.id,
         matricule: response.data.matricule, // ✅ Matricule généré par le backend
         qrCode: response.data.qrCode,
         confirmedAt: response.data.confirmedAt,
-      })
-    );
-    // Passer à l'étape de confirmation
-    onNext();
-  } catch (error) {
-    // Aucune journalisation : l'erreur axios contient la charge envoyée (identité, santé) et la réponse
-    setSubmitError(
-      getApiErrorMessage(error, "Erreur lors de l'envoi des données. Veuillez réessayer.")
-    );
-  } finally {
-    setIsUploading(false);
-  }
-};
-
+      });
+      // Passer à l'étape de confirmation
+      onNext();
+    } catch (error) {
+      // Aucune journalisation : l'erreur axios contient la charge envoyée (identité, santé) et la réponse.
+      // Message affiché dans chaque état de l'étape, avec « Réessayer » (P-23).
+      if (error?.sessionReinscription) {
+        setSubmitError(MESSAGE_SESSION_REINSCRIPTION);
+      } else if (error?.dejaInscrit || typeErreurReinscription(error) === "deja_inscrit") {
+        const detail = error?.response?.data?.detail || error?.message;
+        setSubmitError(
+          `${detail || "Vous êtes déjà inscrit(e) pour cette édition."} Si vous avez déjà payé, contactez ` +
+            "l'administration avec votre reçu."
+        );
+      } else {
+        setSubmitError(getApiErrorMessage(error, "Erreur lors de l'envoi des données. Veuillez réessayer."));
+      }
+    } finally {
+      envoiEnCours.current = false;
+      setIsUploading(false);
+    }
+  };
 
   // ===== RENDER =====
 
