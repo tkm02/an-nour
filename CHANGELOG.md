@@ -5,6 +5,11 @@ Format : [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/) · versions : 
 
 ## [Non publié]
 ### Ajouté
+- Recensement des membres du CO : formulaire public `/recensement-co` en 3 étapes (identification, vérification /
+  saisie, récapitulatif + consentement), API `/api/v1/co/*`, photo facultative compressée dans le navigateur,
+  silhouette `IdPhotoPlaceholder`, progression conservée dans l'onglet (`sessionStorage`, sans date de naissance,
+  téléphone, santé ni jetons), contact d'aide facultatif `REACT_APP_RECENSEMENT_CONTACT`, et tests (logique pure,
+  service, parcours de la page). Aucun lien depuis la page d'accueil.
 - CI : Node 22, `npm ci`, scan des secrets gitleaks (`.gitleaks.toml`), audit npm en rapport, contrôles sur `mDev`,
   action Vercel épinglée par SHA, déploiement après le scan et sous l'environnement GitHub `production`.
 - Règles de collaboration : `.claude/settings.json` (permissions partagées de l'assistant), modèles de PR et
