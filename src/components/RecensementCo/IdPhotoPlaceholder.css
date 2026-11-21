@@ -1,0 +1,44 @@
+/* Silhouette de photo d'identité : couleurs neutres du design system commun (tokens --an-neutral-*).
+   Personnalisable par les variables --idph-* (définies par le conteneur, sinon valeurs ci-dessous). */
+.id-photo-placeholder {
+  --idph-couleur-fond: var(--rco-neutre-50, #f9fafb);
+  --idph-couleur-cadre: var(--rco-neutre-200, #e5e7eb);
+  --idph-couleur-silhouette: var(--rco-neutre-500, #6b7280);
+  --idph-couleur-detail: var(--rco-neutre-800, #333333);
+  --idph-couleur-visage: var(--rco-neutre-200, #e5e7eb);
+
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 3 / 4;
+}
+
+.id-photo-placeholder .idph-fond {
+  fill: var(--idph-couleur-fond);
+}
+
+.id-photo-placeholder .idph-cadre {
+  fill: none;
+  stroke: var(--idph-couleur-cadre);
+  stroke-width: 1.5;
+}
+
+.id-photo-placeholder .idph-silhouette {
+  fill: var(--idph-couleur-silhouette);
+}
+
+.id-photo-placeholder .idph-detail {
+  fill: var(--idph-couleur-detail);
+}
+
+.id-photo-placeholder .idph-visage {
+  fill: var(--idph-couleur-visage);
+}
+
+.id-photo-placeholder .idph-pli {
+  fill: none;
+  stroke: var(--idph-couleur-detail);
+  stroke-opacity: 0.25;
+  stroke-width: 1.5;
+  stroke-linecap: round;
+}
