@@ -4,6 +4,19 @@ Toutes les évolutions notables de ce dépôt sont consignées ici.
 Format : [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/) · versions : [SemVer](https://semver.org/lang/fr/).
 
 ## [Non publié]
+### Modifié
+- Recensement CO (branche `fix/recensement-co-retours`) : l'étape 1 commence par « Étiez-vous membre du comité
+  d'organisation l'an passé ? » — oui : nom, prénoms, téléphone et commission de l'an passé (option « Nouveau
+  membre / aucune » retirée) pour retrouver la fiche ; non : fiche vide, l'identification est envoyée au passage au
+  récapitulatif. Champ date de naissance retiré (identification, fiche, récapitulatif).
+- Recensement CO : photo par défaut = avatars `avatar-homme-transparent.png` / `avatar-femme-transparent.png`
+  (`public/`) au lieu des silhouettes dessinées (silhouette neutre conservée sans sexe choisi) ; mention « Il servira
+  à créer votre compte… » retirée de l'aide du champ e-mail.
+
+### Corrigé
+- Manifeste PWA : icônes `logo192.png` / `logo512.png` absentes (erreur « Download error or resource isn't a valid
+  image ») — icônes carrées générées depuis `ANNOUR_LOGO.png`, entrée `image/x-icon` erronée retirée.
+
 ### Ajouté
 - Recensement des membres du CO : formulaire public `/recensement-co` en 3 étapes (identification, vérification /
   saisie, récapitulatif + consentement), API `/api/v1/co/*`, photo facultative compressée dans le navigateur,

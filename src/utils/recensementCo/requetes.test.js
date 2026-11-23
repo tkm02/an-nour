@@ -12,7 +12,6 @@ import { VALEUR_AUCUNE_COMMISSION } from "./validation";
 const IDENTIFICATION = {
   nom: "  Test ",
   prenoms: "Awa  Fictive",
-  date_naissance: "2000-01-15",
   telephone: "+225 07 00 00 00 00",
   commission_precedente: "Santé",
 };
@@ -22,7 +21,6 @@ describe("construireIdentification", () => {
     expect(construireIdentification(IDENTIFICATION, "jeton-formulaire-fictif")).toEqual({
       nom: "Test",
       prenoms: "Awa  Fictive",
-      date_naissance: "2000-01-15",
       telephone: "0700000000",
       commission_precedente: "Santé",
       jeton_formulaire: "jeton-formulaire-fictif",
@@ -30,7 +28,18 @@ describe("construireIdentification", () => {
     });
   });
 
-  it("envoie null pour « Nouveau membre / aucune »", () => {
+  it("n'envoie jamais la réponse « ancien membre » (choix du parcours, hors contrat)", () => {
+    const corps = construireIdentification({ ...IDENTIFICATION, ancien_membre: "oui" }, "j");
+    expect(corps).not.toHaveProperty("ancien_membre");
+    expect(corps).not.toHaveProperty("date_naissance");
+  });
+
+  it("parcours « non » : commission précédente vide envoyée comme null", () => {
+    expect(construireIdentification({ ...IDENTIFICATION, commission_precedente: "" }, "j").commission_precedente)
+      .toBeNull();
+  });
+
+  it("envoie null pour l'ancienne option « Nouveau membre / aucune »", () => {
     const corps = construireIdentification(
       { ...IDENTIFICATION, commission_precedente: VALEUR_AUCUNE_COMMISSION },
       "j"
@@ -48,7 +57,6 @@ describe("construireFiche", () => {
   const fiche = {
     nom: "Test",
     prenoms: "Awa",
-    date_naissance: "2000-01-15",
     sexe: "F",
     telephone: "07 00 00 00 00",
     email: " Awa.Test@Exemple.CI ",
@@ -63,7 +71,6 @@ describe("construireFiche", () => {
       jeton_session: "jeton-session-fictif",
       nom: "Test",
       prenoms: "Awa",
-      date_naissance: "2000-01-15",
       sexe: "F",
       telephone: "0700000000",
       email: "awa.test@exemple.ci",
@@ -114,7 +121,6 @@ describe("valeursFicheInitiales", () => {
     expect(valeursFicheInitiales(identification, null, options)).toEqual({
       nom: "Test",
       prenoms: "Awa",
-      date_naissance: "2000-01-15",
       sexe: "",
       telephone: "0700000000",
       email: "",
@@ -129,7 +135,6 @@ describe("valeursFicheInitiales", () => {
     const fiche = {
       nom: "TEST",
       prenoms: null,
-      date_naissance: "2000-01-15",
       sexe: "F",
       telephone: "0500000000",
       email: "awa.test@exemple.ci",
@@ -142,7 +147,6 @@ describe("valeursFicheInitiales", () => {
     expect(valeursFicheInitiales(identification, fiche, options)).toEqual({
       nom: "TEST",
       prenoms: "Awa",
-      date_naissance: "2000-01-15",
       sexe: "F",
       telephone: "0500000000",
       email: "awa.test@exemple.ci",

@@ -32,4 +32,6 @@
   utilisées par toutes les étapes (`components/RecensementCo/Step*.jsx`, `Champ.jsx`), qui n'ont donc pas de CSS
   propre ; seuls les composants réutilisables ou spécifiques (`CoStepper`, `PhotoField`, `IdPhotoPlaceholder`) ont
   leur fichier CSS. Écart assumé à la règle « un CSS par composant ».
-- **Progression** dans `sessionStorage` (onglet), jamais date de naissance, téléphone, santé ni jetons.
+- **Progression** dans `sessionStorage` (onglet), jamais téléphone, santé ni jetons (la date de naissance n'est plus
+  demandée depuis le 2026-11-22). La réponse « membre du CO l'an passé ? » (`ancien_membre`) choisit le parcours et
+  n'est jamais envoyée à l'API.

@@ -2,9 +2,7 @@ import React, { useCallback, useMemo } from "react";
 import Champ from "./Champ";
 import PhotoField from "./PhotoField";
 import useValidationEtape from "./useValidationEtape";
-import { AIDE_DATE } from "./StepIdentification";
 import {
-  bornesDateNaissance,
   CHAMPS_FICHE,
   formaterTelephone,
   TEXTE_SANTE_MAX,
@@ -30,6 +28,7 @@ const StepFiche = ({
   erreursServeur,
   onValider,
   onRetour,
+  enCours = false,
 }) => {
   const codesQualites = useMemo(() => qualites.map((q) => q.code), [qualites]);
   const valider = useCallback(
@@ -43,11 +42,10 @@ const StepFiche = ({
     prefixeId: PREFIXE,
     erreursServeur,
   });
-  const bornes = bornesDateNaissance();
 
   const soumettre = (evenement) => {
     evenement.preventDefault();
-    if (photoEnPreparation) return; // « Continuer » aria-disabled pendant la préparation de la photo
+    if (photoEnPreparation || enCours) return; // « Continuer » aria-disabled (photo en préparation, vérification)
     if (verifier()) onValider();
   };
 
@@ -89,8 +87,8 @@ const StepFiche = ({
         <div className="rco-alerte rco-alerte-info">
           <p className="rco-alerte-titre">Nous n'avons pas retrouvé votre fiche de l'an dernier.</p>
           <p>
-            Vérifiez l'orthographe de votre nom, votre date de naissance et votre numéro (bouton Retour), ou continuez
-            pour créer votre fiche ; elle sera vérifiée par l'administration.
+            Vérifiez l'orthographe de votre nom, votre numéro et votre commission de l'an passé (bouton Retour), ou
+            continuez pour créer votre fiche ; elle sera vérifiée par l'administration.
           </p>
         </div>
       ) : (
@@ -104,27 +102,6 @@ const StepFiche = ({
         <div className="rco-grille">
           {texte("nom", "Nom", "family-name")}
           {texte("prenoms", "Prénom(s)", "given-name")}
-          <Champ
-            id={`${PREFIXE}date_naissance`}
-            libelle="Date de naissance"
-            requis
-            aide={AIDE_DATE}
-            erreur={erreurs.date_naissance}
-          >
-            {(attributs) => (
-              <input
-                {...attributs}
-                name="date_naissance"
-                type="date"
-                autoComplete="bday"
-                min={bornes.min}
-                max={bornes.max}
-                value={valeurs.date_naissance}
-                onChange={saisir("date_naissance")}
-                onBlur={() => marquer("date_naissance")}
-              />
-            )}
-          </Champ>
           <fieldset className={`rco-champ rco-choix${erreurs.sexe ? " rco-champ-erreur" : ""}`}>
             <legend className="rco-libelle">
               Sexe<span className="rco-requis" aria-hidden="true"> *</span>
@@ -197,7 +174,7 @@ const StepFiche = ({
             type: "email",
             inputMode: "email",
             maxLength: 254,
-            aide: `Il servira à créer votre compte si votre commission a accès au back-office. Pas d'adresse e-mail ? ${
+            aide: `Pas d'adresse e-mail ? ${
               contact ? `Contactez l'administration : ${contact}` : "Contactez l'administration du séminaire."
             }`,
           })}
@@ -316,10 +293,10 @@ const StepFiche = ({
         </button>
         <button
           type="submit"
-          className={`rco-bouton rco-bouton-principal${photoEnPreparation ? " rco-bouton-occupe" : ""}`}
-          aria-disabled={photoEnPreparation ? "true" : undefined}
+          className={`rco-bouton rco-bouton-principal${photoEnPreparation || enCours ? " rco-bouton-occupe" : ""}`}
+          aria-disabled={photoEnPreparation || enCours ? "true" : undefined}
         >
-          Continuer
+          {enCours ? "Vérification…" : "Continuer"}
         </button>
       </div>
     </form>

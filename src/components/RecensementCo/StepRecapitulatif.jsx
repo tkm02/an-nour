@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { ApercuPhoto } from "./PhotoField";
-import { formaterDate, formaterTelephone } from "../../utils/recensementCo/validation";
+import { formaterTelephone } from "../../utils/recensementCo/validation";
 
 const NON_RENSEIGNE = "Non renseigné";
 
@@ -15,7 +15,6 @@ export const RecapitulatifFiche = ({ valeurs, qualites, photo }) => {
       elements: [
         ["Nom", valeurOuVide(valeurs.nom)],
         ["Prénom(s)", valeurOuVide(valeurs.prenoms)],
-        ["Date de naissance", valeurs.date_naissance ? formaterDate(valeurs.date_naissance) : NON_RENSEIGNE],
         ["Sexe", valeurs.sexe === "M" ? "Masculin" : valeurs.sexe === "F" ? "Féminin" : NON_RENSEIGNE],
       ],
     },

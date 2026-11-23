@@ -3,7 +3,7 @@
 // fermeture de l'onglet, jamais partagé entre onglets), pour survivre à un rechargement ou à une coupure.
 // Minimisation (revue de sécurité S1) :
 // - seulement ce que l'utilisateur a saisi lui-même (jamais les données renvoyées par le serveur) ;
-// - jamais la date de naissance, le téléphone, les champs de santé, les jetons ni la photo ;
+// - jamais le téléphone, les champs de santé, les jetons ni la photo (la date de naissance n'est plus demandée) ;
 // - expiration après 72 h, effacement après un envoi réussi ou à la demande.
 // L'ancienne sauvegarde en localStorage (première version du formulaire) est supprimée au chargement.
 
@@ -13,8 +13,8 @@ import { normaliserTelephone } from "./validation";
 export const CLE_PROGRESSION = "annour.recensementCo.v1";
 export const DUREE_CONSERVATION_MS = 72 * 3600 * 1000;
 
-// Listes blanches : date de naissance, téléphone et santé n'y figurent volontairement pas
-export const CHAMPS_IDENTIFICATION_CONSERVES = ["nom", "prenoms", "commission_precedente"];
+// Listes blanches : téléphone et santé n'y figurent volontairement pas
+export const CHAMPS_IDENTIFICATION_CONSERVES = ["ancien_membre", "nom", "prenoms", "commission_precedente"];
 export const CHAMPS_FICHE_CONSERVES = ["nom", "prenoms", "sexe", "email", "commission", "qualite"];
 
 const filtrer = (valeurs, champs) => {
@@ -116,9 +116,8 @@ export const chargerProgression = (maintenant = Date.now()) => {
 };
 
 /**
- * Même identité que la référence `a` : nom et prénoms identiques (accents, casse et espaces ignorés) ; date de
- * naissance et téléphone comparés seulement s'ils sont connus des deux côtés (la sauvegarde de l'onglet ne les
- * contient pas).
+ * Même identité que la référence `a` : nom et prénoms identiques (accents, casse et espaces ignorés) ; téléphone
+ * comparé seulement s'il est connu des deux côtés (la sauvegarde de l'onglet ne le contient pas).
  */
 export const memeIdentite = (a, b) => {
   if (!a || !b || normaliserLibelle(a.nom) === "") return false;
@@ -126,7 +125,6 @@ export const memeIdentite = (a, b) => {
   return (
     normaliserLibelle(a.nom) === normaliserLibelle(b.nom) &&
     normaliserLibelle(a.prenoms) === normaliserLibelle(b.prenoms) &&
-    memeSiConnu(a.date_naissance, b.date_naissance) &&
     memeSiConnu(normaliserTelephone(a.telephone), normaliserTelephone(b.telephone))
   );
 };
