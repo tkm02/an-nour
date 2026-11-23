@@ -4,6 +4,20 @@ Toutes les évolutions notables de ce dépôt sont consignées ici.
 Format : [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/) · versions : [SemVer](https://semver.org/lang/fr/).
 
 ## [Non publié]
+### Sécurité
+- Recensement CO (branche `fix/recensement-co-securite`, revue du 2026-11-23) : le champ piège anti-robot rempli à
+  l'étape 1 est transmis à l'identification du parcours « non » (il partait toujours vide) ; santé non réaffichée
+  par l'API au-delà de 3 lectures (`sante_masquee`) expliquée à l'étape 2 et au récapitulatif.
+  **Nécessite le backend `fix/recensement-co-securite` (et la PR #9) déployé AVANT ce site** : le site n'envoie plus
+  `date_naissance`, exigée par les versions antérieures de l'API.
+
+### Corrigé
+- Recensement CO : passer de « Oui » à « Non » après une erreur du serveur ne bloque plus « Continuer » ; focus et
+  annonce de l'alerte « fiche déjà validée » dans le parcours « non » ; « Retour » inactif pendant la vérification ;
+  saisie conservée en changeant de réponse (Oui ↔ Non) ; message « déjà envoyée » dans le parcours « non » ;
+  libellés (« l'an passé », « Complétez votre fiche », exemple de téléphone, texte alternatif « avatar ») ; une
+  ancienne sauvegarde « Nouveau membre / aucune » est reprise comme la réponse « Non ».
+
 ### Modifié
 - Recensement CO (branche `fix/recensement-co-retours`) : l'étape 1 commence par « Étiez-vous membre du comité
   d'organisation l'an passé ? » — oui : nom, prénoms, téléphone et commission de l'an passé (option « Nouveau
