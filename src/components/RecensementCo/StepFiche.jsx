@@ -174,7 +174,7 @@ const StepFiche = ({
             type: "email",
             inputMode: "email",
             maxLength: 254,
-            aide: `Il servira à créer votre compte si votre commission a accès au back-office. Pas d'adresse e-mail ? ${
+            aide: `Pas d'adresse e-mail ? ${
               contact ? `Contactez l'administration : ${contact}` : "Contactez l'administration du séminaire."
             }`,
           })}
