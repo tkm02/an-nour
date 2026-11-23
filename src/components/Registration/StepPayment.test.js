@@ -27,7 +27,7 @@ const DONNEES = {
 const VERIFICATION_OK = {
   isValid: true,
   message: 'Reçu valide',
-  extractedData: { transactionId: 'TX-FICTIF-0001', amount: 6000 },
+  extractedData: { transactionId: 'TX-FICTIF-0001', amount: 7000 },
 };
 
 const REPONSE_INSCRIPTION = {
@@ -61,7 +61,7 @@ beforeEach(() => {
 async function allerJusquAuPaiementConfirme(onNext = jest.fn()) {
   render(<StepPayment data={DONNEES} onNext={onNext} onPrevious={jest.fn()} />);
 
-  userEvent.click(screen.getByRole('button', { name: /payer 6.000 fcfa avec wave/i }));
+  userEvent.click(screen.getByRole('button', { name: /payer 7.000 fcfa avec wave/i }));
 
   const recu = new File(['recu'], 'recu-fictif.png', { type: 'image/png' });
   userEvent.upload(screen.getByLabelText(/choisir une image/i), recu);
@@ -186,7 +186,7 @@ describe("StepPayment — échec de l'envoi final (P-23, P-17)", () => {
 describe('StepPayment — reçu accessible au clavier (P-25)', () => {
   test('le champ du reçu est nommé, non masqué par display:none et atteint par Tab', () => {
     render(<StepPayment data={DONNEES} onNext={jest.fn()} onPrevious={jest.fn()} />);
-    userEvent.click(screen.getByRole('button', { name: /payer 6.000 fcfa avec wave/i }));
+    userEvent.click(screen.getByRole('button', { name: /payer 7.000 fcfa avec wave/i }));
 
     const champ = screen.getByLabelText(/choisir une image/i);
     expect(champ).toHaveAttribute('type', 'file');

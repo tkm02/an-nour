@@ -106,7 +106,7 @@ try {
 
     doc.setFontSize(28);
     doc.setTextColor(...colors.accent);
-    doc.text('7.0', pageWidth / 2, 28, { align: 'center' });
+    doc.text('8.0', pageWidth / 2, 28, { align: 'center' });
 
     doc.setTextColor(255, 255, 255);
     doc.setFontSize(15);
@@ -273,9 +273,9 @@ try {
 
     // Liste des informations
     const importantInfo = [
-      { label: 'Dates', value: '20 au 25 Decembre 2025' },
-      { label: 'Lieu', value: 'Lycee Moderne de Cocody, Abidjan' },
-      { label: 'Heure d\'arrivee', value: 'Samedi 20 Decembre a partir de 14h00' },
+      { label: 'Dates', value: 'Du mercredi 23 au mardi 29 Decembre 2026' },
+      { label: 'Lieu', value: 'Bingerville' },
+      { label: 'Heure d\'arrivee', value: 'Mercredi 23 Decembre a partir de 14h00' },
       { label: 'A apporter', value: 'Effets personnels, vetements, toilette, Coran, cahier' },
       { label: 'QR Code', value: 'Presentez cette fiche a l\'entree le jour J' },
       { label: 'Contacts', value: "+225 0545844135/ +225 0142080535 / +2250787944973" },
@@ -312,7 +312,7 @@ try {
     doc.setTextColor(...colors.gray);
     doc.setFont('helvetica', 'normal');
     doc.text(
-      'AN NOUR 2025 - 7eme edition | (c) 2025 Tous droits réservés',
+      'AN NOUR 2026 - 8eme edition | (c) 2026 Tous droits réservés',
       pageWidth / 2,
       yPos,
       { align: 'center' }

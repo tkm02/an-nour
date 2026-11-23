@@ -21,3 +21,17 @@
 5. Tests (Jest + Testing Library) pour toute logique nouvelle ou modifiée.
 6. Dépendances : pas de nouvelle dépendance sans usage réel ; outils de test en `devDependencies`.
 7. Commits : Conventional Commits (`feat:`, `fix:`, `docs:`, `test:`, `refactor:`, `chore:`, `security:`, `ci:`).
+
+## 3. Choix propres au recensement du CO (`/recensement-co`, 2026-11)
+- **Service dédié** `src/services/recensementCo.js` (et non `services/api.js`) : appels `fetch` vers `/api/v1/co/*`,
+  erreurs typées (`ErreurApi`), délai de 90 s (API en veille). L'URL de l'API est résolue **à l'appel**, **sans URL
+  de repli** en production et **HTTPS obligatoire** en production (erreur de configuration explicite, limitée à ce
+  formulaire). À rapprocher de `src/config.js` (P-19, branche `fix/dette-technique-vague-1`) une fois fusionnée.
+- **Styles mutualisés** dans `src/pages/RecensementCoPage.css` : variables `--rco-*` portées par `.rco-page` (palette
+  puis alias sémantiques) et classes partagées du formulaire (`.rco-champ*`, `.rco-bouton*`, `.rco-alerte*`)
+  utilisées par toutes les étapes (`components/RecensementCo/Step*.jsx`, `Champ.jsx`), qui n'ont donc pas de CSS
+  propre ; seuls les composants réutilisables ou spécifiques (`CoStepper`, `PhotoField`, `IdPhotoPlaceholder`) ont
+  leur fichier CSS. Écart assumé à la règle « un CSS par composant ».
+- **Progression** dans `sessionStorage` (onglet), jamais téléphone, santé ni jetons (la date de naissance n'est plus
+  demandée depuis le 2026-11-22). La réponse « membre du CO l'an passé ? » (`ancien_membre`) choisit le parcours et
+  n'est jamais envoyée à l'API.

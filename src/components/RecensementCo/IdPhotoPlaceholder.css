@@ -1,0 +1,33 @@
+/* Photo d'identité par défaut (avatar ou silhouette neutre) : couleurs neutres du design system commun (tokens --an-neutral-*).
+   Personnalisable par les variables --idph-* (définies par le conteneur, sinon valeurs ci-dessous). */
+.id-photo-placeholder {
+  --idph-couleur-fond: var(--rco-neutre-50, #f9fafb);
+  --idph-couleur-cadre: var(--rco-neutre-200, #e5e7eb);
+  --idph-couleur-silhouette: var(--rco-neutre-500, #6b7280);
+
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 3 / 4;
+}
+
+/* Avatars carrés (public/) : remplissent le format 3:4 (côtés rognés), ancrés en bas comme une photo d'identité */
+img.id-photo-placeholder {
+  object-fit: cover;
+  object-position: center bottom;
+  background: var(--idph-couleur-fond);
+}
+
+.id-photo-placeholder .idph-fond {
+  fill: var(--idph-couleur-fond);
+}
+
+.id-photo-placeholder .idph-cadre {
+  fill: none;
+  stroke: var(--idph-couleur-cadre);
+  stroke-width: 1.5;
+}
+
+.id-photo-placeholder .idph-silhouette {
+  fill: var(--idph-couleur-silhouette);
+}
