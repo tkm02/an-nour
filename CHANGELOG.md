@@ -12,11 +12,26 @@ Format : [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/) · versions : 
   `date_naissance`, exigée par les versions antérieures de l'API.
 
 ### Corrigé
+- Tests (P-01) : suite Jest exécutable (`moduleNameMapper` pour `react-router/dom`, `TextEncoder` fourni en test),
+  test gabarit CRA remplacé par un test de fumée du routage ; tests bloquants en CI (`continue-on-error` retiré).
+- Sécurité (P-16) : l'étape Paiement ne journalise plus en console la charge d'inscription (identité, santé), la
+  réponse de l'API ni les erreurs axios qui les contiennent.
+- Paiement (P-17) : une erreur de validation 422 (`detail` tableau) ou une erreur réseau à l'envoi final est
+  traduite en message lisible en français (`src/utils/apiErrors.js`) au lieu d'être rendue telle quelle.
+- Paiement (P-23) : l'échec de l'envoi final de l'inscription est affiché quel que soit l'état de l'étape, avec un
+  bouton « Réessayer » qui relance l'envoi sans redemander de paiement.
+- Accessibilité (P-25) : cartes dortoir, étoiles et échelle de la page Avis utilisables au clavier (radios natifs
+  nommés, masqués visuellement) ; champ du reçu atteignable au clavier ; contour de focus visible.
+- Configuration (P-19) : URL de l'API lue par un module unique (`src/config.js`) ; plus de repli silencieux sur l'API
+  de production : erreur explicite si `REACT_APP_API_URL` manque au build de production, repli sur
+  `http://localhost:8000` en développement et en test. Journal de l'URL au chargement de l'étape Dortoir retiré.
 - Recensement CO : passer de « Oui » à « Non » après une erreur du serveur ne bloque plus « Continuer » ; focus et
   annonce de l'alerte « fiche déjà validée » dans le parcours « non » ; « Retour » inactif pendant la vérification ;
   saisie conservée en changeant de réponse (Oui ↔ Non) ; message « déjà envoyée » dans le parcours « non » ;
   libellés (« l'an passé », « Complétez votre fiche », exemple de téléphone, texte alternatif « avatar ») ; une
   ancienne sauvegarde « Nouveau membre / aucune » est reprise comme la réponse « Non ».
+- Manifeste PWA : icônes `logo192.png` / `logo512.png` absentes (erreur « Download error or resource isn't a valid
+  image ») — icônes carrées générées depuis `ANNOUR_LOGO.png`, entrée `image/x-icon` erronée retirée.
 
 ### Modifié
 - Recensement CO (branche `fix/recensement-co-retours`) : l'étape 1 commence par « Étiez-vous membre du comité
@@ -27,16 +42,16 @@ Format : [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/) · versions : 
   (`public/`) au lieu des silhouettes dessinées (silhouette neutre conservée sans sexe choisi) ; mention « Il servira
   à créer votre compte… » retirée de l'aide du champ e-mail.
 
-### Corrigé
-- Manifeste PWA : icônes `logo192.png` / `logo512.png` absentes (erreur « Download error or resource isn't a valid
-  image ») — icônes carrées générées depuis `ANNOUR_LOGO.png`, entrée `image/x-icon` erronée retirée.
-
 ### Ajouté
 - Recensement des membres du CO : formulaire public `/recensement-co` en 3 étapes (identification, vérification /
   saisie, récapitulatif + consentement), API `/api/v1/co/*`, photo facultative compressée dans le navigateur,
   silhouette `IdPhotoPlaceholder`, progression conservée dans l'onglet (`sessionStorage`, sans date de naissance,
   téléphone, santé ni jetons), contact d'aide facultatif `REACT_APP_RECENSEMENT_CONTACT`, et tests (logique pure,
   service, parcours de la page). Aucun lien depuis la page d'accueil.
+- Sécurité du cadre (revues du 2026-11-19) : hook `PreToolUse` de protection des secrets, permissions de l'assistant
+  resserrées (`git branch`, `git diff --no-index`, exports, réécritures), CI durcie (SHA-256 de gitleaks épinglé,
+  `persist-credentials: false`, expressions via `env:`, repli si le commit précédent est introuvable).
+- Script `prepare` tolérant (`.husky/install.mjs`) : ignoré en CI, en production et sans devDependencies.
 - CI : Node 22, `npm ci`, scan des secrets gitleaks (`.gitleaks.toml`), audit npm en rapport, contrôles sur `mDev`,
   action Vercel épinglée par SHA, déploiement après le scan et sous l'environnement GitHub `production`.
 - Règles de collaboration : `.claude/settings.json` (permissions partagées de l'assistant), modèles de PR et

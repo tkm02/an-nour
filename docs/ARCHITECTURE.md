@@ -31,8 +31,9 @@ StepConfirmation : lecture du localStorage → PDF (jspdf) → effacement du loc
 Visiteurs : `POST /api/v1/visiteurs` ; avis : `POST /api/v1/feedback` (routes publiques limitées en débit par l'API).
 
 ## 3. Configuration
-`REACT_APP_API_URL` = URL de base **sans** `/api/v1` (les composants ajoutent `/api/v1/...`) ; repli codé en dur sur
-l'API de production dans `services/api.js`. `REACT_APP_CLOUDINARY_CLOUD_NAME`, `REACT_APP_CLOUDINARY_UPLOAD_PRESET`.
+`REACT_APP_API_URL` = URL de base **sans** `/api/v1` (les composants ajoutent `/api/v1/...`), lue **uniquement** par
+`src/config.js` (`API_URL`) : obligatoire en production (erreur explicite au chargement sinon, aucun repli), repli
+sur `http://localhost:8000` en développement et en test (P-19). `REACT_APP_CLOUDINARY_CLOUD_NAME`, `REACT_APP_CLOUDINARY_UPLOAD_PRESET`.
 
 ## 4. Points d'attention
 - Les fonctions `createRegistration`, `getRegistrations`, `getRegistration`, `updateRegistration`,

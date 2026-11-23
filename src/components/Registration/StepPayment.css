@@ -982,3 +982,10 @@ to { transform: rotate(360deg); }
     transform: translateX(10px);
   }
 }
+
+/* Focus clavier sur le champ de reçu masqué visuellement (P-25) */
+.upload-zone:focus-within {
+  border-color: var(--primary);
+  outline: 3px solid var(--primary);
+  outline-offset: 2px;
+}

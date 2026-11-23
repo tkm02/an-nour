@@ -1,5 +1,5 @@
 // services/api.js
-const API_URL = process.env.REACT_APP_API_URL || 'https://an-nour-backend-5mf0.onrender.com';
+import { API_URL } from '../config';
 
 // CREATE
 export const createRegistration = async (data) => {

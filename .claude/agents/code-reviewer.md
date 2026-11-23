@@ -18,12 +18,11 @@ Stack réelle : Create React App (`react-scripts` 5.0.1) · React 19.2 · React 
 
 ## Commandes utiles
 ```bash
-CI=true npx react-scripts test --watchAll=false   # tests (suite actuellement cassée, voir ci-dessous)
+CI=true npx react-scripts test --watchAll=false   # tests (bloquants en CI)
 CI=false npm run build                            # build de production (ESLint CRA inclus)
 ```
-Baseline : la suite de tests **ne démarre pas** (`Cannot find module 'react-router/dom'`, 0 test exécuté) ; build
-Réussi, 0 avertissement ESLint. Tant que la suite n'est pas réparée (tâche dédiée), rapporte les tests comme
-**Échoué (préexistant)** sans les masquer ; ne contourne jamais l'échec (`continue-on-error`, `--passWithNoTests`).
+Baseline : voir `docs/TESTING.md` §2 (suite exécutable depuis la vague 1 de dette, P-01) ; build Réussi,
+0 avertissement ESLint. Ne contourne jamais un échec (`continue-on-error`, `--passWithNoTests`, `skip`).
 
 ## Conventions de référence
 - Pages `src/pages/<Nom>Page.jsx`, composants `src/components/<Zone>/<Nom>.jsx` en `PascalCase` avec **un fichier CSS

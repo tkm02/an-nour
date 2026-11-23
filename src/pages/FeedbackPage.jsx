@@ -3,6 +3,31 @@ import { useNavigate } from 'react-router-dom';
 import { createFeedback } from '../services/api';
 import './FeedbackPage.css';
 
+// Notation accessible au clavier (P-25) : chaque valeur est un radio natif masqué visuellement, placé dans
+// l'élément existant (rendu inchangé) ; le clic souris sur l'étoile reste géré par son onClick.
+const NoteEtoiles = ({ name, label, value, onSelect }) => (
+  <div className="rating-stars" role="radiogroup" aria-label={label}>
+    {[1, 2, 3, 4, 5].map((star) => (
+      <span
+        key={star}
+        className={`star ${star <= value ? 'active' : ''}`}
+        onClick={() => onSelect(star)}
+      >
+        <input
+          type="radio"
+          className="visually-hidden"
+          name={name}
+          value={star}
+          checked={value === star}
+          onChange={() => onSelect(star)}
+          aria-label={`${star} sur 5`}
+        />
+        <span aria-hidden="true">★</span>
+      </span>
+    ))}
+  </div>
+);
+
 const FeedbackPage = () => {
   const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -115,17 +140,12 @@ const FeedbackPage = () => {
           {/* Global Rating - Stars */}
           <div className="form-group">
             <label>Note globale du séminaire</label>
-            <div className="rating-stars">
-              {[1, 2, 3, 4, 5].map((star) => (
-                <span
-                  key={star}
-                  className={`star ${star <= formData.globalRating ? 'active' : ''}`}
-                  onClick={() => handleRating(star)}
-                >
-                  ★
-                </span>
-              ))}
-            </div>
+            <NoteEtoiles
+              name="globalRating-etoiles"
+              label="Note globale du séminaire"
+              value={formData.globalRating}
+              onSelect={handleRating}
+            />
             <input 
               type="hidden" 
               name="globalRating" 
@@ -153,62 +173,56 @@ const FeedbackPage = () => {
           {/* Catering Rating */}
           <div className="form-group">
             <label>Qualité de la nourriture</label>
-            <div className="rating-stars">
-              {[1, 2, 3, 4, 5].map((star) => (
-                <span
-                  key={star}
-                  className={`star ${star <= formData.cateringRating ? 'active' : ''}`}
-                  onClick={() => setFormData(prev => ({ ...prev, cateringRating: star }))}
-                >
-                  ★
-                </span>
-              ))}
-            </div>
+            <NoteEtoiles
+              name="cateringRating-etoiles"
+              label="Qualité de la nourriture"
+              value={formData.cateringRating}
+              onSelect={(note) => setFormData(prev => ({ ...prev, cateringRating: note }))}
+            />
           </div>
 
           {/* Accommodation Rating */}
           <div className="form-group">
             <label>Confort des dortoirs</label>
-            <div className="rating-stars">
-              {[1, 2, 3, 4, 5].map((star) => (
-                <span
-                  key={star}
-                  className={`star ${star <= formData.accommodationRating ? 'active' : ''}`}
-                  onClick={() => setFormData(prev => ({ ...prev, accommodationRating: star }))}
-                >
-                  ★
-                </span>
-              ))}
-            </div>
+            <NoteEtoiles
+              name="accommodationRating-etoiles"
+              label="Confort des dortoirs"
+              value={formData.accommodationRating}
+              onSelect={(note) => setFormData(prev => ({ ...prev, accommodationRating: note }))}
+            />
           </div>
 
           {/* Training Rating */}
           <div className="form-group">
             <label>Qualité des formations</label>
-            <div className="rating-stars">
-              {[1, 2, 3, 4, 5].map((star) => (
-                <span
-                  key={star}
-                  className={`star ${star <= formData.trainingRating ? 'active' : ''}`}
-                  onClick={() => setFormData(prev => ({ ...prev, trainingRating: star }))}
-                >
-                  ★
-                </span>
-              ))}
-            </div>
+            <NoteEtoiles
+              name="trainingRating-etoiles"
+              label="Qualité des formations"
+              value={formData.trainingRating}
+              onSelect={(note) => setFormData(prev => ({ ...prev, trainingRating: note }))}
+            />
           </div>
 
           {/* Content Quality - Scale 1-5 */}
           <div className="form-group">
             <label>Qualité du contenu</label>
-            <div className="scale-container">
+            <div className="scale-container" role="radiogroup" aria-label="Qualité du contenu">
               {[1, 2, 3, 4, 5].map((num) => (
                 <div
                   key={num}
                   className={`scale-item ${formData.contentQuality === num ? 'selected' : ''}`}
                   onClick={() => handleScale(num)}
                 >
-                  {num}
+                  <input
+                    type="radio"
+                    className="visually-hidden"
+                    name="contentQuality-echelle"
+                    value={num}
+                    checked={formData.contentQuality === num}
+                    onChange={() => handleScale(num)}
+                    aria-label={`${num} sur 5`}
+                  />
+                  <span aria-hidden="true">{num}</span>
                 </div>
               ))}
             </div>

@@ -3,8 +3,8 @@ import React, { useState } from "react";
 import axios from "axios";
 import "./StepPayment.css";
 import { uploadToCloudinary } from "../../utils/cloudinaryUpload";
-
-const API_URL = process.env.REACT_APP_API_URL; // Ton API
+import { getApiErrorMessage } from "../../utils/apiErrors";
+import { API_URL } from "../../config";
 
 const StepPayment = ({
   data,
@@ -18,6 +18,8 @@ const StepPayment = ({
   const [receiptPreview, setReceiptPreview] = useState(null);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadError, setUploadError] = useState("");
+  // Échec de l'envoi final : affiché quel que soit l'état de l'étape (P-23)
+  const [submitError, setSubmitError] = useState("");
   const [ocrProgress, setOcrProgress] = useState(0);
   const [verificationResult, setVerificationResult] = useState(null);
   // const [registrationResponse, setRegistrationResponse] = useState(null);
@@ -71,7 +73,6 @@ const StepPayment = ({
 
       setOcrProgress(100);
 
-      // console.log("Résultat backend:", response.data);
       setVerificationResult(response.data);
 
       if (!response.data.isValid) {
@@ -81,7 +82,6 @@ const StepPayment = ({
 
       return true;
     } catch (error) {
-      console.error("Erreur backend:", error);
       if (error.response?.data?.message) {
         setUploadError(error.response.data.message);
       } else if (error.response) {
@@ -158,8 +158,6 @@ const StepPayment = ({
       setIsUploading(true);
       setUploadError("");
 
-      // console.log('🚀 Upload vers Cloudinary...');
-
       // ✅ Upload vers Cloudinary
       const uploadResult = await uploadToCloudinary(receiptImage);
 
@@ -167,17 +165,12 @@ const StepPayment = ({
         throw new Error(uploadResult.error || 'Échec upload image');
       }
 
-      // console.log('✅ Image uploadée:', uploadResult.url);
-      // console.log('📦 Taille:', (uploadResult.size / 1024).toFixed(2), 'KB');
-
       // Préparer les données de paiement avec URL Cloudinary
       const paymentData = {
         transactionId: verificationResult.extractedData.transactionId,
         amount: verificationResult.extractedData.amount,
         receiptUrl: uploadResult.url, // ✅ URL Cloudinary
       };
-
-      // console.log('💾 Sauvegarde des données:', paymentData);
 
       // Sauvegarder dans localStorage
       const savedData = JSON.parse(localStorage.getItem("an-nour-registration") || "{}");
@@ -190,11 +183,7 @@ const StepPayment = ({
 
       setTransactionId(verificationResult.extractedData.transactionId);
       setPaymentStatus("completed");
-
-      // console.log('✅ Upload terminé avec succès');
-
     } catch (error) {
-      console.error("❌ Erreur upload:", error);
       setUploadError(
         error.message || "Erreur lors de l'upload. Veuillez réessayer."
       );
@@ -203,16 +192,16 @@ const StepPayment = ({
     }
   };
 
+  // Envoi final de l'inscription (aussi utilisé par « Réessayer » : ne relance jamais le paiement Wave)
   const handleConfirmPayment = async () => {
   try {
     setIsUploading(true);
+    setSubmitError("");
 
     // Récupérer toutes les données du localStorage
     const fullRegistrationData = JSON.parse(
       localStorage.getItem("an-nour-registration") || "{}"
     );
-
-    // console.log("📦 Données brutes du localStorage:", fullRegistrationData);
 
     // ✅ Nettoyer et préparer les données à envoyer
     const cleanedData = {
@@ -244,8 +233,6 @@ const StepPayment = ({
       }
     };
 
-    console.log("✅ Données nettoyées:", cleanedData);
-
     // Envoyer au backend
     const response = await axios.post(
       `${API_URL}/api/v1/registrations`,
@@ -256,7 +243,6 @@ const StepPayment = ({
         },
       }
     );
-    console.log("✅ Réponse du backend:", response.data);
     // Sauvegarder la réponse complète
     // setRegistrationResponse(response.data);
     // Mettre à jour le localStorage avec la réponse du backend
@@ -273,15 +259,10 @@ const StepPayment = ({
     // Passer à l'étape de confirmation
     onNext();
   } catch (error) {
-    console.error("❌ Erreur lors de l'envoi:", error);
-
-    if (error.response?.data?.message) {
-      setUploadError(error.response.data.message);
-    } else if (error.response?.data?.detail) {
-      setUploadError(error.response.data.detail);
-    } else {
-      setUploadError("Erreur lors de l'envoi des données. Veuillez réessayer.");
-    }
+    // Aucune journalisation : l'erreur axios contient la charge envoyée (identité, santé) et la réponse
+    setSubmitError(
+      getApiErrorMessage(error, "Erreur lors de l'envoi des données. Veuillez réessayer.")
+    );
   } finally {
     setIsUploading(false);
   }
@@ -423,7 +404,7 @@ const StepPayment = ({
                   accept="image/*"
                   onChange={handleReceiptChange}
                   disabled={isUploading}
-                  style={{ display: "none" }}
+                  className="visually-hidden"
                 />
                 <div className="upload-content">
                   <div className="upload-icon">📤</div>
@@ -614,6 +595,22 @@ const StepPayment = ({
                   </svg>
                 </>
               )}
+            </button>
+          </div>
+        )}
+
+        {/* Échec de l'envoi final : visible dans chaque état, relance sans nouveau paiement */}
+        {submitError && (
+          <div className="alert alert-error" role="alert">
+            <span aria-hidden="true">⚠️</span>
+            <span>{submitError}</span>
+            <button
+              type="button"
+              className="btn-text"
+              onClick={handleConfirmPayment}
+              disabled={isUploading}
+            >
+              Réessayer
             </button>
           </div>
         )}
