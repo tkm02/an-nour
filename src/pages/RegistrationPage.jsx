@@ -178,7 +178,7 @@ const RegistrationPage = () => {
             <span>Retour</span>
           </button>
           <div className="header-title">
-            <h1>Inscription An-Nour 7.0</h1>
+            <h1>Inscription An-Nour 8.0</h1>
             <p className="step-indicator">
               Étape {currentStep} sur {steps.length}
             </p>

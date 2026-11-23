@@ -73,7 +73,7 @@ const StepConfirmation = () => {
 
         <h2 className="confirmation-title">Inscription confirmée !</h2>
         <p className="confirmation-subtitle">
-          Félicitations ! Votre inscription au Séminaire An-Nour 7.0 a été validée avec succès.
+          Félicitations ! Votre inscription au Séminaire An-Nour 8.0 a été validée avec succès.
         </p>
       </div>
 
@@ -154,9 +154,9 @@ const StepConfirmation = () => {
             <strong>Informations importantes</strong>
           </div>
           <ul className="info-list">
-            <li><strong>Dates :</strong> 20 au 25 Décembre 2025</li>
-            <li><strong>Lieu :</strong> Lycée Moderne de Cocody, Abidjan</li>
-            <li><strong>Heure d'arrivée :</strong> Vendredi 20 Décembre à partir de 14h00</li>
+            <li><strong>Dates :</strong> Du mercredi 23 au mardi 29 Décembre 2026</li>
+            <li><strong>Lieu :</strong> Bingerville</li>
+            <li><strong>Heure d'arrivée :</strong> Mercredi 23 Décembre à partir de 14h00</li>
             <li><strong>À apporter :</strong> Effets personnels, vêtements, articles de toilette, Coran, cahier et stylo</li>
             <li><strong>QR Code :</strong> Présentez votre QR Code à l'entrée le jour J</li>
           </ul>
