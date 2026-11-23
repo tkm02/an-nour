@@ -10,16 +10,15 @@ import {
 
 // Données fictives uniquement
 const IDENTIFICATION = {
+  ancien_membre: "oui",
   nom: "Test",
   prenoms: "Awa",
-  date_naissance: "2000-01-15",
   telephone: "07 00 00 00 00",
   commission_precedente: "Santé",
 };
 const FICHE = {
   nom: "Test",
   prenoms: "Awa",
-  date_naissance: "2000-01-15",
   sexe: "F",
   telephone: "0700000000",
   email: "awa.test@exemple.ci",
@@ -43,13 +42,13 @@ describe("sauvegarde de la progression (stockage de l'onglet)", () => {
     expect(window.localStorage.getItem(CLE_PROGRESSION)).toBeNull();
   });
 
-  it("n'enregistre ni date de naissance, ni téléphone, ni santé, ni jetons", () => {
+  it("n'enregistre ni téléphone, ni santé, ni jetons", () => {
     expect(CLE_PROGRESSION).toMatch(/v1$/);
     enregistrerProgression({ identification: { ...IDENTIFICATION, jeton_formulaire: "j" }, fiche: FICHE }, 1000);
     const brut = window.sessionStorage.getItem(CLE_PROGRESSION);
-    expect(brut).not.toMatch(/2000-01-15|0700000000|07 00|Arachide|Asthme|allergies|antecedents|jeton|telephone|date_naissance/);
+    expect(brut).not.toMatch(/0700000000|07 00|Arachide|Asthme|allergies|antecedents|jeton|telephone/);
     const donnees = JSON.parse(brut);
-    expect(Object.keys(donnees.identification).sort()).toEqual(["commission_precedente", "nom", "prenoms"]);
+    expect(Object.keys(donnees.identification).sort()).toEqual(["ancien_membre", "commission_precedente", "nom", "prenoms"]);
     expect(Object.keys(donnees.fiche).sort()).toEqual(["commission", "email", "nom", "prenoms", "qualite", "sexe"]);
   });
 
@@ -62,7 +61,12 @@ describe("sauvegarde de la progression (stockage de l'onglet)", () => {
   it("recharge une progression récente de l'onglet", () => {
     enregistrerProgression({ identification: IDENTIFICATION, fiche: { email: "awa.test@exemple.ci" } }, 1000);
     const progression = chargerProgression(1000 + 60 * 1000);
-    expect(progression.identification).toEqual({ nom: "Test", prenoms: "Awa", commission_precedente: "Santé" });
+    expect(progression.identification).toEqual({
+      ancien_membre: "oui",
+      nom: "Test",
+      prenoms: "Awa",
+      commission_precedente: "Santé",
+    });
     expect(progression.fiche).toEqual({ email: "awa.test@exemple.ci" });
   });
 
@@ -104,7 +108,7 @@ describe("sauvegarde de la progression (stockage de l'onglet)", () => {
 describe("memeIdentite / appliquerFicheSauvegardee", () => {
   it("compare l'identité sans tenir compte des accents, de la casse ni du format du téléphone", () => {
     expect(memeIdentite(IDENTIFICATION, { ...IDENTIFICATION, nom: "TÉST ", telephone: "+2250700000000" })).toBe(true);
-    expect(memeIdentite(IDENTIFICATION, { ...IDENTIFICATION, date_naissance: "2000-01-16" })).toBe(false);
+    expect(memeIdentite(IDENTIFICATION, { ...IDENTIFICATION, telephone: "0500000000" })).toBe(false);
     expect(memeIdentite(IDENTIFICATION, { ...IDENTIFICATION, prenoms: "Fatou" })).toBe(false);
     expect(memeIdentite(null, IDENTIFICATION)).toBe(false);
     expect(memeIdentite({ nom: "" }, { nom: "" })).toBe(false);
