@@ -19,6 +19,7 @@ const StepFiche = ({
   trouvee,
   dejaSoumise,
   nonRetrouve,
+  santeMasquee = false,
   contact,
   photo,
   onChoisirPhoto,
@@ -85,7 +86,7 @@ const StepFiche = ({
         </div>
       ) : nonRetrouve ? (
         <div className="rco-alerte rco-alerte-info">
-          <p className="rco-alerte-titre">Nous n'avons pas retrouvé votre fiche de l'an dernier.</p>
+          <p className="rco-alerte-titre">Nous n'avons pas retrouvé votre fiche de l'an passé.</p>
           <p>
             Vérifiez l'orthographe de votre nom, votre numéro et votre commission de l'an passé (bouton Retour), ou
             continuez pour créer votre fiche ; elle sera vérifiée par l'administration.
@@ -145,7 +146,7 @@ const StepFiche = ({
             id={`${PREFIXE}telephone`}
             libelle="Téléphone"
             requis
-            aide="Numéro ivoirien (+225) à 10 chiffres"
+            aide="Numéro ivoirien (+225) à 10 chiffres, par exemple 07 00 00 00 00"
             erreur={erreurs.telephone}
           >
             {(attributs) => (
@@ -241,6 +242,12 @@ const StepFiche = ({
           Facultatif. Ces informations permettent à la commission Santé de vous prendre en charge si besoin pendant le
           séminaire ; seule cette commission y a accès. Elles ne sont pas conservées sur cet appareil.
         </p>
+        {santeMasquee && (
+          <p className="rco-alerte rco-alerte-info">
+            Pour protéger vos informations de santé, elles ne sont pas réaffichées ici. Laissez ces champs vides pour
+            conserver celles déjà enregistrées, ou saisissez-les pour les remplacer.
+          </p>
+        )}
         {[
           { champ: "allergies", libelle: "Allergies", aide: "ex. arachides, pénicilline. Laissez vide si aucune." },
           {
@@ -288,7 +295,14 @@ const StepFiche = ({
       </fieldset>
 
       <div className="rco-actions">
-        <button type="button" className="rco-bouton rco-bouton-secondaire" onClick={onRetour}>
+        <button
+          type="button"
+          className={`rco-bouton rco-bouton-secondaire${enCours ? " rco-bouton-occupe" : ""}`}
+          onClick={() => {
+            if (!enCours) onRetour(); // inactif pendant la vérification
+          }}
+          aria-disabled={enCours ? "true" : undefined}
+        >
           Retour
         </button>
         <button

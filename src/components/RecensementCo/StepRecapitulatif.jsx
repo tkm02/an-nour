@@ -4,10 +4,14 @@ import { formaterTelephone } from "../../utils/recensementCo/validation";
 
 const NON_RENSEIGNE = "Non renseigné";
 
-const valeurOuVide = (valeur) => (typeof valeur === "string" && valeur.trim() ? valeur.trim() : NON_RENSEIGNE);
+const SANTE_CONSERVEE = "Inchangées (non réaffichées)";
+
+const valeurOuVide = (valeur, vide = NON_RENSEIGNE) =>
+  typeof valeur === "string" && valeur.trim() ? valeur.trim() : vide;
 
 /** Fiche en lecture seule (récapitulatif avant envoi, ou fiche verrouillée). */
-export const RecapitulatifFiche = ({ valeurs, qualites, photo }) => {
+export const RecapitulatifFiche = ({ valeurs, qualites, photo, santeMasquee = false }) => {
+  const videSante = santeMasquee ? SANTE_CONSERVEE : NON_RENSEIGNE;
   const qualite = qualites.find((q) => q.code === valeurs.qualite);
   const lignes = [
     {
@@ -35,8 +39,8 @@ export const RecapitulatifFiche = ({ valeurs, qualites, photo }) => {
     {
       titre: "Santé",
       elements: [
-        ["Allergies", valeurOuVide(valeurs.allergies)],
-        ["Antécédents médicaux", valeurOuVide(valeurs.antecedents_medicaux)],
+        ["Allergies", valeurOuVide(valeurs.allergies, videSante)],
+        ["Antécédents médicaux", valeurOuVide(valeurs.antecedents_medicaux, videSante)],
       ],
     },
   ];
@@ -103,6 +107,8 @@ const StepRecapitulatif = ({
   enCours,
   erreur,
   consentementVersion,
+  dejaSoumise = false,
+  santeMasquee = false,
 }) => {
   const [consentement, setConsentement] = useState(false);
   const [erreurConsentement, setErreurConsentement] = useState("");
@@ -122,7 +128,12 @@ const StepRecapitulatif = ({
   return (
     <form className="rco-formulaire" onSubmit={soumettre} noValidate>
       <p className="rco-intro">Relisez votre fiche avant de l'envoyer.</p>
-      <RecapitulatifFiche valeurs={valeurs} qualites={qualites} photo={photo} />
+      {dejaSoumise && (
+        <div className="rco-alerte rco-alerte-info">
+          <p>Vous avez déjà envoyé votre fiche pour cette édition : ce nouvel envoi la mettra à jour.</p>
+        </div>
+      )}
+      <RecapitulatifFiche valeurs={valeurs} qualites={qualites} photo={photo} santeMasquee={santeMasquee} />
 
       <div className={`rco-consentement${erreurConsentement ? " rco-champ-erreur" : ""}`}>
         <label className="rco-option rco-option-consentement" htmlFor="consentement">

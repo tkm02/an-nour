@@ -5,8 +5,8 @@ import "./IdPhotoPlaceholder.css";
 // public/) ; autre valeur : silhouette neutre dessinée.
 
 const LIBELLES = {
-  M: "Photo d'identité non fournie : silhouette d'homme",
-  F: "Photo d'identité non fournie : silhouette de femme voilée",
+  M: "Photo d'identité non fournie : avatar d'homme",
+  F: "Photo d'identité non fournie : avatar de femme voilée",
   neutre: "Photo d'identité non fournie",
 };
 

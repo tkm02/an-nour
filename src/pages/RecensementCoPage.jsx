@@ -36,7 +36,12 @@ import {
   libelleOfficiel,
   valeursFicheInitiales,
 } from "../utils/recensementCo/requetes";
-import { ANCIEN_NON, CHAMPS_FICHE, CHAMPS_IDENTIFICATION } from "../utils/recensementCo/validation";
+import {
+  ANCIEN_NON,
+  CHAMPS_FICHE,
+  CHAMPS_IDENTIFICATION,
+  VALEUR_AUCUNE_COMMISSION,
+} from "../utils/recensementCo/validation";
 import "./RecensementCoPage.css";
 
 const ETAPES = ["Identité", "Fiche", "Envoi"];
@@ -46,6 +51,7 @@ const TITRES = {
   3: "Récapitulatif et envoi",
   4: "Fiche enregistrée",
 };
+const TITRE_FICHE_NOUVEAU_MEMBRE = "Complétez votre fiche";
 // L'API refuse une identification moins de 3 s après l'émission du jeton du formulaire : marge de sécurité
 const DELAI_MINIMAL_MS = 3500;
 const DELAI_MESSAGE_ATTENTE_MS = 6000;
@@ -55,6 +61,16 @@ const REQUETE_LIBRE = { enCours: false, erreur: null };
 const COMMISSION_INCONNUE = "commission inconnue";
 
 const pause = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+/** Identification reprise de l'onglet ; l'ancienne option « Nouveau membre / aucune » devient la réponse « Non ». */
+const identificationRestauree = (sauvee) => {
+  const valeurs = { ...IDENTIFICATION_VIDE, ...(sauvee || {}) };
+  if (valeurs.commission_precedente === VALEUR_AUCUNE_COMMISSION) {
+    valeurs.commission_precedente = "";
+    if (!valeurs.ancien_membre) valeurs.ancien_membre = ANCIEN_NON;
+  }
+  return valeurs;
+};
 
 /** Vrai lorsque `actif` dure depuis plus de `delai` ms (démarrage à froid de l'API). */
 const useAttenteLongue = (actif, delai = DELAI_MESSAGE_ATTENTE_MS) => {
@@ -143,10 +159,7 @@ const RecensementCoPage = ({ delaiMinimalMs = DELAI_MINIMAL_MS }) => {
   const [sauvegarde] = useState(() => chargerProgression());
   const [config, setConfig] = useState({ etat: "chargement", donnees: null, erreur: null });
   const [etape, setEtape] = useState(1);
-  const [identification, setIdentification] = useState(() => ({
-    ...IDENTIFICATION_VIDE,
-    ...(sauvegarde?.identification || {}),
-  }));
+  const [identification, setIdentification] = useState(() => identificationRestauree(sauvegarde?.identification));
   const [fiche, setFiche] = useState(FICHE_VIDE);
   const [session, setSession] = useState(null);
   const [photo, setPhoto] = useState(PHOTO_VIDE);
@@ -165,7 +178,11 @@ const RecensementCoPage = ({ delaiMinimalMs = DELAI_MINIMAL_MS }) => {
   const refusIdentification = useRef(0);
   const jetonRecuA = useRef(0);
   const champPiege = useRef(null);
+  // Valeur du champ piège relevée à l'étape 1 : l'identification du parcours « non » part de l'étape 2, où le champ
+  // n'est plus affiché
+  const valeurPiege = useRef("");
   const titre = useRef(null);
+  const alerteVerrou = useRef(null);
   const premierRendu = useRef(true);
   const contact = contactAide();
 
@@ -175,6 +192,7 @@ const RecensementCoPage = ({ delaiMinimalMs = DELAI_MINIMAL_MS }) => {
   const qualites = useMemo(() => donnees?.qualites || [], [donnees]);
   // « Non » à « Étiez-vous membre du CO l'an passé ? » : fiche vide, identification envoyée avant le récapitulatif
   const nouveauMembre = identification.ancien_membre === ANCIEN_NON;
+  const sessionVerrouillee = Boolean(session?.verrouillee);
 
   const attenteLongue = useAttenteLongue(config.etat === "chargement" || requete.enCours);
 
@@ -217,6 +235,16 @@ const RecensementCoPage = ({ delaiMinimalMs = DELAI_MINIMAL_MS }) => {
     if (titre.current) titre.current.focus();
   }, [etape]);
 
+  // Fiche déjà validée (lecture seule) : focus et défilement sur l'alerte, qui est lue par les lecteurs d'écran
+  // (parcours « non » : l'étape ne change pas, le formulaire disparaît)
+  useEffect(() => {
+    if (etape !== 2 || !sessionVerrouillee || !alerteVerrou.current) return;
+    alerteVerrou.current.focus();
+    if (typeof alerteVerrou.current.scrollIntoView === "function") {
+      alerteVerrou.current.scrollIntoView({ block: "center" });
+    }
+  }, [etape, sessionVerrouillee]);
+
   // ---------------------------------------------------------------- sauvegarde de l'onglet (saisie seulement)
   useEffect(() => {
     if (etape === 4) return;
@@ -249,6 +277,23 @@ const RecensementCoPage = ({ delaiMinimalMs = DELAI_MINIMAL_MS }) => {
 
   // ---------------------------------------------------------------- saisie
   const modifierIdentification = (champ, valeur) => {
+    if (champ === "ancien_membre") {
+      // Changement de parcours : les erreurs de l'autre parcours portent sur des champs masqués, elles sont effacées
+      setErreursServeur((e) => ({ ...e, identification: {} }));
+      setRequete((r) => (r.erreur ? { ...r, erreur: null } : r));
+      const ficheMemoire = memoire.current?.identification.ancien_membre === ANCIEN_NON ? memoire.current.fiche : null;
+      setIdentification((v) => {
+        const suivant = { ...v, ancien_membre: valeur };
+        // « Non » puis « Oui » : l'identité saisie dans la fiche est reprise pour la recherche
+        if (valeur !== ANCIEN_NON && ficheMemoire && !v.nom && !v.prenoms && !v.telephone) {
+          suivant.nom = ficheMemoire.nom || "";
+          suivant.prenoms = ficheMemoire.prenoms || "";
+          suivant.telephone = ficheMemoire.telephone || "";
+        }
+        return suivant;
+      });
+      return;
+    }
     setIdentification((v) => ({ ...v, [champ]: valeur }));
     setErreursServeur((e) =>
       e.identification[champ] ? { ...e, identification: { ...e.identification, [champ]: "" } } : e
@@ -270,9 +315,8 @@ const RecensementCoPage = ({ delaiMinimalMs = DELAI_MINIMAL_MS }) => {
   const demanderSession = async (identite) => {
     const attente = delaiMinimalMs - (Date.now() - jetonRecuA.current);
     if (attente > 0) await pause(attente);
-    const reponse = await identifierMembre(
-      construireIdentification(identite, donnees.jeton_formulaire, champPiege.current?.value || "")
-    );
+    const piege = champPiege.current ? champPiege.current.value || "" : valeurPiege.current;
+    const reponse = await identifierMembre(construireIdentification(identite, donnees.jeton_formulaire, piege));
     if (!reponse.jeton_session || !["trouve", "nouveau"].includes(reponse.resultat)) {
       throw new ErreurApi("reponse");
     }
@@ -308,9 +352,15 @@ const RecensementCoPage = ({ delaiMinimalMs = DELAI_MINIMAL_MS }) => {
   // ---------------------------------------------------------------- étape 1 → 2, parcours « non » : fiche vide
   const commencerNouveauMembre = () => {
     const enMemoire = memoire.current && memoire.current.identification.ancien_membre === ANCIEN_NON;
+    // « Oui » puis « Non » : nom, prénoms et téléphone déjà saisis sont repris dans la fiche
+    const identiteSaisie = {
+      nom: identification.nom || "",
+      prenoms: identification.prenoms || "",
+      telephone: identification.telephone || "",
+    };
     const valeurs = enMemoire
       ? { ...memoire.current.fiche }
-      : appliquerFicheSauvegardee({ ...FICHE_VIDE }, ficheSaisie.current);
+      : appliquerFicheSauvegardee({ ...FICHE_VIDE, ...identiteSaisie }, ficheSaisie.current);
     setFiche(ajusterAuxOptions(valeurs));
     setSession(null);
     setPhoto({ ...PHOTO_VIDE, fichier: enMemoire ? memoire.current.fichierPhoto || null : null });
@@ -321,6 +371,7 @@ const RecensementCoPage = ({ delaiMinimalMs = DELAI_MINIMAL_MS }) => {
 
   // ---------------------------------------------------------------- étape 1 → 2, parcours « oui »
   const identifier = async () => {
+    valeurPiege.current = champPiege.current?.value || "";
     if (nouveauMembre) {
       commencerNouveauMembre();
       return;
@@ -332,7 +383,13 @@ const RecensementCoPage = ({ delaiMinimalMs = DELAI_MINIMAL_MS }) => {
       const reponse = await demanderSession(identification);
       const codesQualites = qualites.map((q) => q.code);
       let valeurs = valeursFicheInitiales(identification, reponse.fiche, { commissions, qualites: codesQualites });
-      const enMemoire = memoire.current && memeIdentite(memoire.current.identification, identification);
+      // Mémoire de la page : identification du parcours « oui », ou identité saisie dans la fiche du parcours « non »
+      const identiteMemoire =
+        memoire.current &&
+        (memoire.current.identification.ancien_membre === ANCIEN_NON
+          ? memoire.current.fiche
+          : memoire.current.identification);
+      const enMemoire = Boolean(identiteMemoire) && memeIdentite(identiteMemoire, identification);
       if (!reponse.verrouillee && enMemoire) {
         valeurs = { ...memoire.current.fiche }; // fiche telle que saisie, champs vidés compris
       } else if (!reponse.verrouillee && memeIdentite(identificationStockee.current, identification)) {
@@ -349,6 +406,7 @@ const RecensementCoPage = ({ delaiMinimalMs = DELAI_MINIMAL_MS }) => {
         nonRetrouve: reponse.resultat === "nouveau",
         dejaSoumise: Boolean(reponse.deja_soumise),
         verrouillee: Boolean(reponse.verrouillee),
+        santeMasquee: Boolean(reponse.sante_masquee),
         modificationsNonEnregistrees: false,
       });
       setPhoto({
@@ -491,6 +549,7 @@ const RecensementCoPage = ({ delaiMinimalMs = DELAI_MINIMAL_MS }) => {
   };
 
   const recommencer = () => {
+    if (occupe.current) return; // « Retour » inactif pendant la vérification (la réponse changerait d'étape)
     if (etape === 2 && !session?.verrouillee) memoriser();
     setSession(null);
     setRequete(REQUETE_LIBRE);
@@ -500,7 +559,7 @@ const RecensementCoPage = ({ delaiMinimalMs = DELAI_MINIMAL_MS }) => {
   // ---------------------------------------------------------------- rendu
   const renduVerrouillee = () => (
     <>
-      <div className="rco-alerte rco-alerte-avertissement" role="status">
+      <div className="rco-alerte rco-alerte-avertissement" role="status" ref={alerteVerrou} tabIndex={-1}>
         <p className="rco-alerte-titre">{completerAvecContact(MESSAGE_VERROUILLEE)}</p>
         <p>Votre fiche a été validée par l'administration : elle ne peut plus être modifiée en ligne.</p>
       </div>
@@ -598,6 +657,7 @@ const RecensementCoPage = ({ delaiMinimalMs = DELAI_MINIMAL_MS }) => {
             trouvee={session?.trouvee}
             dejaSoumise={session?.dejaSoumise}
             nonRetrouve={session?.nonRetrouve}
+            santeMasquee={session?.santeMasquee}
             contact={contact}
             photo={photo}
             onChoisirPhoto={(fichier) => setPhoto((p) => ({ ...p, fichier }))}
@@ -622,6 +682,8 @@ const RecensementCoPage = ({ delaiMinimalMs = DELAI_MINIMAL_MS }) => {
             valeurs={fiche}
             qualites={qualites}
             photo={photo}
+            dejaSoumise={nouveauMembre && session?.dejaSoumise}
+            santeMasquee={session?.santeMasquee}
             onModifier={() => {
               setRequete(REQUETE_LIBRE);
               setEtape(2);
@@ -650,7 +712,7 @@ const RecensementCoPage = ({ delaiMinimalMs = DELAI_MINIMAL_MS }) => {
       <>
         <CoStepper etapes={ETAPES} etapeCourante={etape} />
         <h2 className="rco-titre-etape" ref={titre} tabIndex={-1}>
-          {TITRES[etape]}
+          {etape === 2 && nouveauMembre ? TITRE_FICHE_NOUVEAU_MEMBRE : TITRES[etape]}
         </h2>
         {renduEtape()}
         <MessageAttente

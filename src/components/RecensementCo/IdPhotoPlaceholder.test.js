@@ -4,7 +4,7 @@ import IdPhotoPlaceholder from "./IdPhotoPlaceholder";
 describe("IdPhotoPlaceholder", () => {
   it("affiche l'avatar homme pour le sexe M", () => {
     render(<IdPhotoPlaceholder sexe="M" />);
-    const image = screen.getByRole("img", { name: /silhouette d'homme/ });
+    const image = screen.getByRole("img", { name: /avatar d'homme/ });
     expect(image).toHaveAttribute("data-variante", "M");
     expect(image.getAttribute("src")).toMatch(/\/avatar-homme-transparent\.png$/);
   });
