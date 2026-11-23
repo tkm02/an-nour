@@ -12,7 +12,9 @@ nouveau build.
 
 ## 2. Variables (référence : `.env.example`)
 `REACT_APP_API_URL` (sans `/api/v1`), `REACT_APP_CLOUDINARY_CLOUD_NAME`, `REACT_APP_CLOUDINARY_UPLOAD_PRESET`,
-`REACT_APP_API_KEY` (non lue par `src/`). Toutes publiques.
+`REACT_APP_API_KEY` (non lue par `src/`), `REACT_APP_RECENSEMENT_CONTACT` (facultative : contact d'aide affiché par le
+formulaire `/recensement-co`, texte libre). Toutes publiques. Le formulaire `/recensement-co` exige en production une
+`REACT_APP_API_URL` en `https://`.
 
 ## 3. Cible
 | Environnement | Données | À mettre en place |

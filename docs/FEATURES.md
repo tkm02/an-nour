@@ -13,6 +13,7 @@
 | Inscription — confirmation et PDF | étape 5 | `StepConfirmation.jsx`, `PDFGenerator.jsx` | — | aucun | partiel |
 | Inscription des visiteurs | `/visiteurs` | `VisitorRegistrationPage.jsx` | `POST /visiteurs` | aucun | partiel |
 | Avis | `/avis` | `FeedbackPage.jsx` | `POST /feedback` | aucun | partiel |
+| Recensement des membres du CO (lien diffusé aux membres, sans lien public) | `/recensement-co` | `pages/RecensementCoPage.jsx`, `components/RecensementCo/*`, `services/recensementCo.js`, `utils/recensementCo/*` | `GET /co/configuration`, `POST /co/identification`, `POST /co/fiche`, `POST /co/photo` | Jest (logique, service, parcours) | nouveau — recette navigateur à faire |
 
 Comportement attendu côté API lorsque les inscriptions sont closes (`REGISTRATIONS_OPEN=false`) : refus de
 `POST /registrations` pour le public — affichage côté site **à vérifier** (`GET /registrations/status` n'est pas
