@@ -1,3 +1,17 @@
+# An-Nour — site public d'inscription
+
+Site public du Séminaire Islamique et Managérial An-Nour : présentation, inscription des séminaristes (5 étapes,
+reçu de paiement vérifié par l'API), inscription des visiteurs et avis.
+
+- Démarrer : `CONTRIBUTING.md` (installation, workflow) et `CLAUDE.md` (commandes, carte du code, règles).
+- Référence : `docs/` (architecture, fonctionnalités, sécurité, tests, déploiement, design system, dette technique) ;
+  historique : `CHANGELOG.md`.
+- Vue d'ensemble des 4 applications An-Nour : dépôt Backend (`ym-0-bm/An-Nour-Backend`), `docs/SYSTEME_GLOBAL.md`.
+
+---
+
+*Guide d'origine de Create React App :*
+
 # Getting Started with Create React App
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).

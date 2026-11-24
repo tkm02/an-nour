@@ -1,0 +1,524 @@
+import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
+import RecensementCoPage from "./RecensementCoPage";
+import * as service from "../services/recensementCo";
+import { compresserPhoto } from "../utils/recensementCo/photo";
+import { ErreurApi } from "../utils/recensementCo/erreurs";
+import { CLE_PROGRESSION } from "../utils/recensementCo/progression";
+
+jest.mock("../services/recensementCo", () => ({
+  chargerConfiguration: jest.fn(),
+  identifierMembre: jest.fn(),
+  soumettreFiche: jest.fn(),
+  envoyerPhoto: jest.fn(),
+}));
+
+jest.mock("../utils/recensementCo/photo", () => ({
+  ...jest.requireActual("../utils/recensementCo/photo"),
+  compresserPhoto: jest.fn(),
+}));
+
+// Données fictives uniquement
+const CONFIGURATION = {
+  ouvert: true,
+  edition: { code: "TEST26", libelle: "Édition de test" },
+  commissions: ["Santé", "Logistique"],
+  commissions_precedentes: ["Santé", "Logistique", "Accueil"],
+  qualites: [
+    { code: "membre", libelle: "Membre" },
+    { code: "responsable", libelle: "Responsable" },
+    { code: "responsable_adjoint", libelle: "Responsable adjoint" },
+  ],
+  jeton_formulaire: "jeton-formulaire-1",
+  consentement_version: "test-v1",
+};
+
+const FICHE_TROUVEE = {
+  nom: "TEST",
+  prenoms: "Awa",
+  date_naissance: "2000-01-15",
+  sexe: "F",
+  telephone: "0700000000",
+  email: "awa.serveur@exemple.ci",
+  commission: "Santé",
+  qualite: "membre",
+  allergies: "Arachide (fictif)",
+  antecedents_medicaux: null,
+  photo_url: null,
+};
+
+const TROUVEE = {
+  resultat: "trouve",
+  jeton_session: "jeton-session-1",
+  fiche: FICHE_TROUVEE,
+  deja_soumise: false,
+  verrouillee: false,
+};
+const NOUVEAU = { resultat: "nouveau", jeton_session: "jeton-session-2", fiche: null, deja_soumise: false, verrouillee: false };
+const ENREGISTREE = {
+  message: "Votre fiche a bien été enregistrée. Merci !",
+  reference: "CO-TEST26-ABC123",
+  jeton_photo: "jeton-photo-1",
+};
+
+const http = (status, data, retryAfter = null) => new ErreurApi("http", { status, data, retryAfter });
+
+const saisir = (libelle, valeur) => fireEvent.change(screen.getByLabelText(libelle), { target: { value: valeur } });
+const cliquer = (nom) => fireEvent.click(screen.getByRole("button", { name: nom }));
+
+const remplirIdentification = (commission = "__aucune__") => {
+  saisir(/^Nom/, "Test");
+  saisir(/^Prénom\(s\)/, "Awa");
+  saisir(/^Date de naissance/, "2000-01-15");
+  saisir(/^Téléphone/, "07 00 00 00 00");
+  saisir(/commission lors de l'édition précédente/, commission);
+};
+
+const afficher = async () => {
+  render(<RecensementCoPage delaiMinimalMs={0} />);
+  await screen.findByRole("option", { name: "Nouveau membre / aucune" });
+};
+
+const allerAuRecapitulatif = async (reponseIdentification = TROUVEE) => {
+  service.identifierMembre.mockResolvedValue(reponseIdentification);
+  await afficher();
+  remplirIdentification();
+  cliquer("Continuer");
+  await screen.findByRole("heading", { name: "Vérifiez et complétez votre fiche" });
+  cliquer("Continuer");
+  await screen.findByRole("heading", { name: "Récapitulatif et envoi" });
+  fireEvent.click(screen.getByRole("checkbox"));
+};
+
+beforeEach(() => {
+  jest.clearAllMocks();
+  window.localStorage.clear();
+  window.sessionStorage.clear();
+  delete process.env.REACT_APP_RECENSEMENT_CONTACT;
+  service.chargerConfiguration.mockResolvedValue(CONFIGURATION);
+});
+
+describe("RecensementCoPage — affichage", () => {
+  it("affiche l'étape 1 pendant le chargement : seuls la liste et « Continuer » attendent", async () => {
+    let terminer;
+    service.chargerConfiguration.mockReturnValue(new Promise((resolve) => (terminer = resolve)));
+    render(<RecensementCoPage delaiMinimalMs={0} />);
+    expect(screen.getByRole("heading", { name: "Identifiez-vous" })).toBeInTheDocument();
+    expect(screen.getByLabelText(/^Nom/)).toBeEnabled();
+    expect(screen.getByRole("option", { name: "Chargement de la liste…" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Continuer" })).toHaveAttribute("aria-disabled", "true");
+    await act(async () => terminer(CONFIGURATION));
+    expect(screen.getByRole("button", { name: "Continuer" })).not.toHaveAttribute("aria-disabled");
+  });
+
+  it("indique l'étape courante de façon accessible, avec des libellés courts", async () => {
+    await afficher();
+    const etapes = within(screen.getByRole("navigation", { name: "Progression du formulaire" })).getAllByRole("listitem");
+    expect(etapes.map((e) => e.textContent)).toEqual([
+      "1Étape 1 sur 3 : Identité",
+      "2Étape 2 sur 3 : Fiche",
+      "3Étape 3 sur 3 : Envoi",
+    ]);
+    expect(etapes[0]).toHaveAttribute("aria-current", "step");
+    expect(etapes[1]).not.toHaveAttribute("aria-current");
+  });
+
+  it("contient le champ piège hors de l'arbre d'accessibilité et ignoré des gestionnaires de mots de passe", async () => {
+    await afficher();
+    const piege = screen.getByLabelText("Laisser ce champ vide");
+    expect(piege).toHaveAttribute("tabindex", "-1");
+    expect(piege).toHaveAttribute("autocomplete", "off");
+    expect(piege).toHaveAttribute("data-lpignore", "true");
+    expect(piege).toHaveAttribute("data-1p-ignore");
+    expect(piege).toHaveAttribute("data-bwignore");
+    expect(piege.getAttribute("name")).not.toMatch(/web|url|site/i);
+    expect(screen.queryByRole("textbox", { name: "Laisser ce champ vide" })).not.toBeInTheDocument();
+  });
+
+  it("signale les erreurs sous chaque champ et place le focus sur la première", async () => {
+    await afficher();
+    cliquer("Continuer");
+    const nom = screen.getByLabelText(/^Nom/);
+    expect(nom).toHaveFocus();
+    expect(nom).toHaveAttribute("aria-invalid", "true");
+    expect(nom).toHaveAccessibleDescription("Le nom est obligatoire.");
+    expect(service.identifierMembre).not.toHaveBeenCalled();
+  });
+
+  it("affiche le contact d'aide s'il est configuré", async () => {
+    process.env.REACT_APP_RECENSEMENT_CONTACT = "WhatsApp 07 00 00 00 00 (fictif)";
+    await afficher();
+    expect(screen.getByText("WhatsApp 07 00 00 00 00 (fictif)")).toBeInTheDocument();
+  });
+
+  it("recensement fermé : message explicite", async () => {
+    service.chargerConfiguration.mockResolvedValue({ ...CONFIGURATION, ouvert: false, edition: null });
+    render(<RecensementCoPage delaiMinimalMs={0} />);
+    expect(await screen.findByText("Le recensement n'est pas ouvert pour le moment.")).toBeInTheDocument();
+  });
+
+  it("serveur injoignable au chargement : alerte focalisée et bouton Réessayer", async () => {
+    service.chargerConfiguration.mockRejectedValueOnce(new ErreurApi("reseau"));
+    render(<RecensementCoPage delaiMinimalMs={0} />);
+    const alerte = await screen.findByRole("alert");
+    expect(alerte).toHaveTextContent(/Impossible de contacter le serveur/);
+    expect(alerte).toHaveFocus();
+    cliquer("Réessayer");
+    await screen.findByRole("option", { name: "Nouveau membre / aucune" });
+  });
+});
+
+describe("RecensementCoPage — parcours", () => {
+  it("fiche retrouvée : pré-remplit tout (santé comprise), puis envoie la fiche après consentement", async () => {
+    service.identifierMembre.mockResolvedValue(TROUVEE);
+    service.soumettreFiche.mockResolvedValue(ENREGISTREE);
+    await afficher();
+    remplirIdentification();
+    cliquer("Continuer");
+
+    await screen.findByText("Nous avons retrouvé votre fiche");
+    expect(service.identifierMembre).toHaveBeenCalledWith({
+      nom: "Test",
+      prenoms: "Awa",
+      date_naissance: "2000-01-15",
+      telephone: "0700000000",
+      commission_precedente: null,
+      jeton_formulaire: "jeton-formulaire-1",
+      site_web: "",
+    });
+    expect(screen.getByLabelText(/^Adresse email/)).toHaveValue("awa.serveur@exemple.ci");
+    expect(screen.getByLabelText(/^Allergies/)).toHaveValue("Arachide (fictif)");
+    expect(screen.getByLabelText(/^Allergies/)).toHaveAccessibleDescription(/arachides, pénicilline/);
+    expect(screen.getByLabelText(/^Commission pour cette édition/)).toHaveValue("Santé");
+    expect(screen.getByRole("img", { name: /femme voilée/ })).toBeInTheDocument();
+
+    // Rien de ce que le serveur a renvoyé n'est écrit dans le navigateur
+    const sauvegarde = window.sessionStorage.getItem(CLE_PROGRESSION) || "";
+    expect(sauvegarde).not.toMatch(/awa\.serveur|Arachide|2000-01-15|0700000000/);
+    expect(window.localStorage.getItem(CLE_PROGRESSION)).toBeNull();
+
+    cliquer("Continuer");
+    await screen.findByRole("heading", { name: "Récapitulatif et envoi" });
+    expect(screen.getByText("Arachide (fictif)")).toBeInTheDocument();
+    expect(screen.getByText("Version du texte : test-v1")).toBeInTheDocument();
+
+    cliquer("Envoyer ma fiche");
+    expect(screen.getByRole("checkbox")).toHaveFocus();
+    expect(screen.getByText(/devez donner votre consentement/)).toBeInTheDocument();
+    expect(service.soumettreFiche).not.toHaveBeenCalled();
+
+    fireEvent.click(screen.getByRole("checkbox"));
+    cliquer("Envoyer ma fiche");
+    await screen.findByText("CO-TEST26-ABC123");
+    expect(service.soumettreFiche).toHaveBeenCalledWith(
+      expect.objectContaining({
+        jeton_session: "jeton-session-1",
+        email: "awa.serveur@exemple.ci",
+        allergies: "Arachide (fictif)",
+        consentement: true,
+        supprimer_photo: false,
+      })
+    );
+    expect(service.soumettreFiche.mock.calls[0][0]).not.toHaveProperty("antecedents_medicaux");
+    expect(service.envoyerPhoto).not.toHaveBeenCalled();
+    expect(window.sessionStorage.getItem(CLE_PROGRESSION)).toBeNull();
+  });
+
+  it("n'enregistre dans l'onglet que les champs saisis par l'utilisateur", async () => {
+    service.identifierMembre.mockResolvedValue(TROUVEE);
+    await afficher();
+    remplirIdentification();
+    cliquer("Continuer");
+    await screen.findByText("Nous avons retrouvé votre fiche");
+    saisir(/^Adresse email/, "awa.saisie@exemple.ci");
+    saisir(/^Allergies/, "Pollen (fictif)");
+    const sauvegarde = JSON.parse(window.sessionStorage.getItem(CLE_PROGRESSION));
+    expect(sauvegarde.fiche).toEqual({ email: "awa.saisie@exemple.ci" });
+    expect(sauvegarde.identification).toEqual({ nom: "Test", prenoms: "Awa", commission_precedente: "__aucune__" });
+  });
+
+  it("supprime l'ancienne sauvegarde localStorage au chargement", async () => {
+    window.localStorage.setItem(CLE_PROGRESSION, JSON.stringify({ version: 1, identification: { nom: "Test" } }));
+    await afficher();
+    expect(window.localStorage.getItem(CLE_PROGRESSION)).toBeNull();
+  });
+
+  it("nouveau membre : message neutre et fiche à compléter", async () => {
+    service.identifierMembre.mockResolvedValue(NOUVEAU);
+    await afficher();
+    remplirIdentification();
+    cliquer("Continuer");
+    await screen.findByText("Complétez votre fiche, elle sera vérifiée par l'administration.");
+    expect(screen.getByLabelText(/^Nom/)).toHaveValue("Test");
+    expect(screen.getByLabelText(/^Adresse email/)).toHaveValue("");
+
+    cliquer("Continuer");
+    expect(screen.getByRole("radio", { name: "Masculin" })).toHaveFocus();
+  });
+
+  it("ancien membre non retrouvé : invitation à vérifier l'identification", async () => {
+    service.identifierMembre.mockResolvedValue(NOUVEAU);
+    await afficher();
+    remplirIdentification("Santé");
+    cliquer("Continuer");
+    expect(await screen.findByText("Nous n'avons pas retrouvé votre fiche de l'an dernier.")).toBeInTheDocument();
+  });
+
+  it("fiche verrouillée : lecture seule et invitation à contacter l'administration", async () => {
+    service.identifierMembre.mockResolvedValue({ ...TROUVEE, deja_soumise: true, verrouillee: true });
+    await afficher();
+    remplirIdentification();
+    cliquer("Continuer");
+    await screen.findByText(/Fiche déjà validée : contactez l'administration/);
+    expect(screen.queryByRole("textbox")).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Continuer" })).not.toBeInTheDocument();
+  });
+
+  it("retour arrière : un champ volontairement vidé ne reprend pas la valeur du serveur", async () => {
+    service.identifierMembre.mockResolvedValue(TROUVEE);
+    await afficher();
+    remplirIdentification();
+    cliquer("Continuer");
+    await screen.findByText("Nous avons retrouvé votre fiche");
+    saisir(/^Allergies/, "");
+    cliquer("Retour");
+    await screen.findByRole("heading", { name: "Identifiez-vous" });
+    cliquer("Continuer");
+    await screen.findByText("Nous avons retrouvé votre fiche");
+    expect(screen.getByLabelText(/^Allergies/)).toHaveValue("");
+  });
+
+  it("confirmation : copie de la référence et fiche d'une autre personne", async () => {
+    const writeText = jest.fn().mockResolvedValue(undefined);
+    Object.defineProperty(navigator, "clipboard", { value: { writeText }, configurable: true });
+    service.soumettreFiche.mockResolvedValue(ENREGISTREE);
+    await allerAuRecapitulatif();
+    cliquer("Envoyer ma fiche");
+    await screen.findByText("CO-TEST26-ABC123");
+
+    cliquer("Copier la référence");
+    expect(await screen.findByText("Référence copiée.")).toBeInTheDocument();
+    expect(writeText).toHaveBeenCalledWith("CO-TEST26-ABC123");
+
+    cliquer("Remplir la fiche d'une autre personne");
+    await screen.findByRole("heading", { name: "Identifiez-vous" });
+    expect(screen.getByLabelText(/^Nom/)).toHaveValue("");
+    await waitFor(() => expect(service.chargerConfiguration).toHaveBeenCalledTimes(2));
+    delete navigator.clipboard;
+  });
+});
+
+describe("RecensementCoPage — erreurs", () => {
+  it("jeton du formulaire refusé (400) : recharge la configuration, message rassurant et focus sur l'alerte", async () => {
+    service.identifierMembre.mockRejectedValueOnce(
+      http(400, { detail: "Formulaire expiré ou envoyé trop vite, veuillez réessayer" })
+    );
+    await afficher();
+    remplirIdentification();
+    cliquer("Continuer");
+    const alerte = await screen.findByRole("alert");
+    expect(alerte).toHaveTextContent("Pour votre sécurité, le formulaire a expiré. Vos réponses sont conservées");
+    expect(alerte).toHaveFocus();
+    expect(service.chargerConfiguration).toHaveBeenCalledTimes(2);
+  });
+
+  it("champ piège rempli : valeur transmise, puis au 2e refus invitation à contacter l'administration", async () => {
+    process.env.REACT_APP_RECENSEMENT_CONTACT = "WhatsApp 07 00 00 00 00 (fictif)";
+    service.identifierMembre.mockRejectedValue(http(400, { detail: "Requête invalide" }));
+    await afficher();
+    remplirIdentification();
+    fireEvent.change(screen.getByLabelText("Laisser ce champ vide"), { target: { value: "http://spam.example" } });
+    cliquer("Continuer");
+    await screen.findByText(/le formulaire a expiré/);
+    expect(service.identifierMembre.mock.calls[0][0].site_web).toBe("http://spam.example");
+
+    cliquer("Continuer");
+    const alerte = await screen.findByText(/n'a pas pu être vérifiée/);
+    expect(alerte).toHaveTextContent("Besoin d'aide ? WhatsApp 07 00 00 00 00 (fictif)");
+    expect(service.chargerConfiguration).toHaveBeenCalledTimes(2); // pas de rechargement en boucle
+  });
+
+  it("trop de tentatives (429) : message avec le délai", async () => {
+    service.identifierMembre.mockRejectedValueOnce(http(429, { detail: "Trop de requêtes" }, "600"));
+    await afficher();
+    remplirIdentification();
+    cliquer("Continuer");
+    expect(await screen.findByRole("alert")).toHaveTextContent("Trop de tentatives. Réessayez dans 10 minutes.");
+  });
+
+  it("double clic sur « Envoyer » : un seul envoi", async () => {
+    let terminer;
+    service.soumettreFiche.mockReturnValue(new Promise((resolve) => (terminer = resolve)));
+    await allerAuRecapitulatif();
+    const bouton = screen.getByRole("button", { name: "Envoyer ma fiche" });
+    fireEvent.click(bouton);
+    fireEvent.click(bouton);
+    expect(service.soumettreFiche).toHaveBeenCalledTimes(1);
+    expect(screen.getByRole("button", { name: "Envoi en cours…" })).toHaveAttribute("aria-disabled", "true");
+    await act(async () => terminer(ENREGISTREE));
+    await screen.findByText("CO-TEST26-ABC123");
+  });
+
+  it("envoi concurrent (409 « patientez ») : message de l'API, bouton réactivé, erreur rappelée près des boutons", async () => {
+    service.soumettreFiche.mockRejectedValueOnce(http(409, { detail: "Envoi déjà en cours, patientez quelques secondes" }));
+    await allerAuRecapitulatif();
+    cliquer("Envoyer ma fiche");
+    const alerte = await screen.findByRole("alert");
+    expect(alerte).toHaveTextContent("Envoi déjà en cours, patientez quelques secondes");
+    expect(alerte).toHaveFocus();
+    expect(screen.getAllByText("Envoi déjà en cours, patientez quelques secondes")).toHaveLength(2);
+    expect(screen.getByRole("button", { name: "Envoyer ma fiche" })).not.toHaveAttribute("aria-disabled");
+  });
+
+  it("réponse 201 non JSON ou incomplète : message d'erreur et bouton réactivé", async () => {
+    service.soumettreFiche
+      .mockRejectedValueOnce(new ErreurApi("reponse", { status: 201 }))
+      .mockResolvedValueOnce({ message: "ok" });
+    await allerAuRecapitulatif();
+    cliquer("Envoyer ma fiche");
+    expect(await screen.findByRole("alert")).toHaveTextContent(/Réponse inattendue du serveur/);
+    expect(screen.getByRole("button", { name: "Envoyer ma fiche" })).not.toHaveAttribute("aria-disabled");
+
+    cliquer("Envoyer ma fiche");
+    await waitFor(() => expect(service.soumettreFiche).toHaveBeenCalledTimes(2));
+    expect(await screen.findByRole("alert")).toHaveTextContent(/Réponse inattendue du serveur/);
+    expect(screen.queryByText(/Référence de votre fiche/)).not.toBeInTheDocument();
+  });
+
+  it("422 par champ : retour à l'étape 2 avec le message sous le champ", async () => {
+    service.soumettreFiche.mockRejectedValueOnce(
+      http(422, {
+        detail: [{ type: "value_error", loc: ["body", "email"], msg: "value is not a valid email address" }],
+      })
+    );
+    await allerAuRecapitulatif();
+    cliquer("Envoyer ma fiche");
+    await screen.findByRole("heading", { name: "Vérifiez et complétez votre fiche" });
+    expect(screen.getByLabelText(/^Adresse email/)).toHaveAccessibleDescription(/Adresse email invalide\./);
+    expect(screen.getByRole("alert")).toHaveTextContent("Certaines informations sont invalides");
+  });
+
+  it("422 « Commission inconnue » : rattaché au champ commission, retour à l'étape 2", async () => {
+    service.soumettreFiche.mockRejectedValueOnce(http(422, { detail: "Commission inconnue" }));
+    await allerAuRecapitulatif();
+    cliquer("Envoyer ma fiche");
+    await screen.findByRole("heading", { name: "Vérifiez et complétez votre fiche" });
+    const commission = screen.getByLabelText(/^Commission pour cette édition/);
+    expect(commission).toHaveAttribute("aria-invalid", "true");
+    expect(commission).toHaveAccessibleDescription("Commission inconnue : choisissez une valeur dans la liste.");
+  });
+
+  it("fiche validée entre-temps (409) : lecture seule titrée « Vos modifications (non enregistrées) »", async () => {
+    service.soumettreFiche.mockRejectedValueOnce(
+      http(409, { detail: "Votre fiche a déjà été validée : contactez l'administration pour la modifier" })
+    );
+    await allerAuRecapitulatif({ ...TROUVEE, deja_soumise: true });
+    cliquer("Envoyer ma fiche");
+    await screen.findByText("Vos modifications (non enregistrées)");
+    expect(screen.queryByRole("textbox")).not.toBeInTheDocument();
+  });
+
+  it("session expirée à l'envoi (400) : retour à l'identification, saisie conservée (champ vidé compris)", async () => {
+    service.soumettreFiche.mockRejectedValueOnce(http(400, { detail: "Session expirée ou invalide, veuillez recommencer" }));
+    service.identifierMembre.mockResolvedValue(TROUVEE);
+    await afficher();
+    remplirIdentification();
+    cliquer("Continuer");
+    await screen.findByText("Nous avons retrouvé votre fiche");
+    saisir(/^Adresse email/, "awa.saisie@exemple.ci");
+    saisir(/^Allergies/, "");
+    cliquer("Continuer");
+    await screen.findByRole("heading", { name: "Récapitulatif et envoi" });
+    fireEvent.click(screen.getByRole("checkbox"));
+    cliquer("Envoyer ma fiche");
+
+    await screen.findByRole("heading", { name: "Identifiez-vous" });
+    const alerte = screen.getByRole("alert");
+    expect(alerte).toHaveTextContent("Pour votre sécurité, votre session a expiré. Vos réponses sont conservées");
+    expect(alerte).toHaveFocus();
+    expect(screen.getByLabelText(/^Date de naissance/)).toHaveValue("2000-01-15");
+
+    cliquer("Continuer");
+    await screen.findByText("Nous avons retrouvé votre fiche");
+    expect(screen.getByLabelText(/^Adresse email/)).toHaveValue("awa.saisie@exemple.ci");
+    expect(screen.getByLabelText(/^Allergies/)).toHaveValue("");
+  });
+});
+
+describe("RecensementCoPage — photo", () => {
+  const photo = new File(["photo"], "photo.jpg", { type: "image/jpeg" });
+
+  const envoyerAvecPhoto = async () => {
+    compresserPhoto.mockResolvedValue(photo);
+    service.identifierMembre.mockResolvedValue({ ...TROUVEE, fiche: { ...FICHE_TROUVEE, sexe: "M" } });
+    service.soumettreFiche.mockResolvedValue({ message: "Enregistrée", reference: "CO-TEST26-PHOTO1", jeton_photo: "jp" });
+    await afficher();
+    remplirIdentification();
+    cliquer("Continuer");
+    await screen.findByText("Nous avons retrouvé votre fiche");
+    fireEvent.change(screen.getByLabelText("Fichier de la photo"), { target: { files: [photo] } });
+    await screen.findByText(/Photo prête/);
+    cliquer("Continuer");
+    await screen.findByRole("heading", { name: "Récapitulatif et envoi" });
+    fireEvent.click(screen.getByRole("checkbox"));
+    cliquer("Envoyer ma fiche");
+    await screen.findByText("CO-TEST26-PHOTO1");
+  };
+
+  it("pendant la préparation de la photo, « Continuer » est désactivé", async () => {
+    let terminer;
+    compresserPhoto.mockReturnValue(new Promise((resolve) => (terminer = resolve)));
+    service.identifierMembre.mockResolvedValue(TROUVEE);
+    await afficher();
+    remplirIdentification();
+    cliquer("Continuer");
+    await screen.findByText("Nous avons retrouvé votre fiche");
+    fireEvent.change(screen.getByLabelText("Fichier de la photo"), { target: { files: [photo] } });
+    await screen.findByRole("button", { name: "Préparation de la photo…" });
+    const continuer = screen.getByRole("button", { name: "Continuer" });
+    expect(continuer).toHaveAttribute("aria-disabled", "true");
+    fireEvent.click(continuer);
+    expect(screen.queryByRole("heading", { name: "Récapitulatif et envoi" })).not.toBeInTheDocument();
+    await act(async () => terminer(photo));
+    expect(screen.getByRole("button", { name: "Continuer" })).not.toHaveAttribute("aria-disabled");
+  });
+
+  it("échec du stockage (502) : la fiche reste enregistrée, avertissement et nouvel essai possible", async () => {
+    service.envoyerPhoto
+      .mockRejectedValueOnce(http(502, { detail: "Service de stockage des photos indisponible" }))
+      .mockResolvedValueOnce({ photo_url: "https://res.cloudinary.com/demo/p.jpg" });
+    await envoyerAvecPhoto();
+    expect(screen.getByRole("alert")).toHaveTextContent("Service de stockage des photos indisponible");
+    expect(service.envoyerPhoto.mock.calls[0][0].get("jeton_photo")).toBe("jp");
+
+    cliquer("Réessayer l'envoi de la photo");
+    await waitFor(() => expect(screen.queryByRole("alert")).not.toBeInTheDocument());
+    expect(service.envoyerPhoto).toHaveBeenCalledTimes(2);
+  });
+
+  it("jeton photo expiré (400) : message dédié, sans bouton Réessayer", async () => {
+    service.envoyerPhoto.mockRejectedValueOnce(http(400, { detail: "Session expirée ou invalide, veuillez recommencer" }));
+    await envoyerAvecPhoto();
+    expect(screen.getByRole("alert")).toHaveTextContent("Le délai d'envoi de la photo est dépassé");
+    expect(screen.queryByRole("button", { name: "Réessayer l'envoi de la photo" })).not.toBeInTheDocument();
+  });
+});
+
+describe("RecensementCoPage — sauvegarde de l'onglet", () => {
+  it("reprend la saisie de l'onglet (sans date ni téléphone) et permet de l'effacer", async () => {
+    window.sessionStorage.setItem(
+      CLE_PROGRESSION,
+      JSON.stringify({
+        version: 1,
+        enregistreLe: Date.now(),
+        identification: { nom: "Test", prenoms: "Awa", commission_precedente: "" },
+        fiche: null,
+      })
+    );
+    await afficher();
+    expect(screen.getByLabelText(/^Nom/)).toHaveValue("Test");
+    expect(screen.getByLabelText(/^Date de naissance/)).toHaveValue("");
+    cliquer("Effacer mes réponses");
+    expect(screen.getByLabelText(/^Nom/)).toHaveValue("");
+    expect(window.sessionStorage.getItem(CLE_PROGRESSION)).toBeNull();
+  });
+});

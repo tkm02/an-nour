@@ -1,0 +1,41 @@
+/* Réinscription des séminaristes (écran de choix, recherche, bandeaux, inscriptions closes).
+   Couleurs : uniquement les variables --rco-* (src/pages/RecensementCoPage.css, conteneur .rco-formulaire-public). */
+.reinscription {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.reinscription .form-header h2 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin: 0 0 0.25rem;
+}
+
+.reinscription .form-header p {
+  margin: 0;
+  color: var(--rco-texte-secondaire);
+}
+
+.reinscription-choix {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.75rem;
+}
+
+.reinscription-bandeau {
+  margin-bottom: 1.5rem;
+}
+
+.reinscription-cloture {
+  margin: 0.25rem 0 0;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--rco-accent);
+}
+
+@media (min-width: 640px) {
+  .reinscription-choix {
+    grid-template-columns: 1fr 1fr;
+  }
+}
