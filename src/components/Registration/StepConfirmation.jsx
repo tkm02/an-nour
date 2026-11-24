@@ -1,25 +1,38 @@
 
 // src/components/Registration/StepConfirmation.jsx
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import PDFGenerator from '../PDFGenerator';
 import './StepConfirmation.css';
-import { effacerInscription, inscriptionComplete } from '../../utils/inscription/stockage';
 
-const StepConfirmation = ({ data: enMemoire }) => {
+const StepConfirmation = () => {
   const navigate = useNavigate();
-  // Inscription conservée dans l'onglet (paiement, matricule) + identité, dortoir et santé lus en mémoire
-  // (la santé n'est jamais écrite dans le navigateur)
-  const [data] = useState(() => {
-    const complete = inscriptionComplete(enMemoire);
-    return complete.personalInfo?.nom || complete.matricule ? complete : null;
-  });
+  const [data, setData] = useState(null);
+  const [qrCodeUrl, setQrCodeUrl] = useState('');
 
-  // QR code généré à partir du matricule (même service qu'auparavant)
-  const matriculeQr = data?.matricule || data?.dormitoryInfo?.matricule;
-  const qrCodeUrl = matriculeQr
-    ? `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${matriculeQr}`
-    : '';
+  useEffect(() => {
+    // Récupérer les données du localStorage
+    const savedData = localStorage.getItem('an-nour-registration');
+    
+    if (savedData) {
+      const parsedData = JSON.parse(savedData);
+      setData(parsedData);
+      
+      // Générer QR code avec le matricule
+      if (parsedData.matricule || parsedData.dormitoryInfo?.matricule) {
+        const matricule = parsedData.matricule || parsedData.dormitoryInfo.matricule;
+        generateQRCode(matricule);
+      }
+    }
+  }, []);
+
+  const generateQRCode = async (matricule) => {
+    try {
+      setQrCodeUrl(`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${matricule}`);
+    } catch (error) {
+      console.error('Erreur génération QR code:', error);
+    }
+  };
 
   const handleDownloadPDF = () => {
     if (data) {
@@ -28,7 +41,7 @@ const StepConfirmation = ({ data: enMemoire }) => {
   };
 
   const handleNewRegistration = () => {
-    effacerInscription();
+    localStorage.removeItem('an-nour-registration');
     navigate('/inscription');
     window.location.reload();
   };

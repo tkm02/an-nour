@@ -5,7 +5,6 @@ import App from './App';
 import './index.css';
 import FeedbackPage from './pages/FeedbackPage';
 import LandingPage from './pages/LandingPage';
-import RecensementCoPage from './pages/RecensementCoPage';
 import RegistrationPage from './pages/RegistrationPage';
 import VisitorRegistrationPage from './pages/VisitorRegistrationPage';
 
@@ -29,11 +28,6 @@ const router = createBrowserRouter([
       {
         path: 'avis',
         element: <FeedbackPage />
-      },
-      {
-        // Lien diffusé directement aux membres du CO (aucun lien depuis la page d'accueil)
-        path: 'recensement-co',
-        element: <RecensementCoPage />
       }
     ]
   }

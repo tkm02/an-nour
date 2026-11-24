@@ -1,15 +1,51 @@
 import React, { useState } from "react";
 import "./StepPersonnalInfo.css";
-import { COMMUNES_CI, cycleDuNiveau, NIVEAUX_ACADEMIQUES } from "../../utils/inscription/referentiels";
 
-const StepPersonalInfo = ({ data, onChange, onNext, aideNiveau, avertissementIdentite }) => {
+const StepPersonalInfo = ({ data, onChange, onNext }) => {
   const [errors, setErrors] = useState({});
-  // Cycle déduit du niveau déjà renseigné (réinscription pré-remplie), sinon aucun
-  const [selectedCycle, setSelectedCycle] = useState(() => cycleDuNiveau(data.niveauAcademique));
+  const [selectedCycle, setSelectedCycle] = useState("");
 
-  // Listes partagées avec le pré-remplissage de la réinscription (src/utils/inscription/referentiels.js)
-  const niveauxAcademiques = NIVEAUX_ACADEMIQUES;
-  const communesCI = COMMUNES_CI;
+  // ✅ Structure hiérarchique des niveaux
+  const niveauxAcademiques = {
+    Primaire: ["CP1", "CP2", "CE1", "CE2", "CM1", "CM2"],
+    Collège: ["6ème", "5ème", "4ème", "3ème"],
+    Lycée: ["2nde", "1ère", "Terminale"],
+    Licence: ["Licence 1", "Licence 2", "Licence 3"],
+    Master: ["Master 1", "Master 2"],
+    Prepa: ["Prepa 1", "Prepa 2"],
+    Ingenieur: ["Ingenieur 1", "Ingenieur 2", "Ingenieur 3"],
+    Bts: ["Bts 1", "Bts 2"],
+    Doctorat: ["Doctorat 1", "Doctorat 2", "Doctorat 3"],
+    Professionnel: ["Professionnel"],
+  };
+
+  const communesCI = [
+    "Abobo",
+    "Adjamé",
+    "Attécoubé",
+    "Cocody",
+    "Koumassi",
+    "Marcory",
+    "Plateau",
+    "Port-Bouët",
+    "Treichville",
+    "Yopougon",
+    "Bingerville",
+    "Songon",
+    "Anyama",
+    "Bouaké",
+    "Daloa",
+    "Korhogo",
+    "San-Pédro",
+    "Yamoussoukro",
+    "Man",
+    "Gagnoa",
+    "Divo",
+    "Abengourou",
+    "Agboville",
+    "Grand-Bassam",
+    "Autre",
+  ];
 
   const handleChange = (field, value) => {
     onChange({ [field]: value });
@@ -114,10 +150,6 @@ const StepPersonalInfo = ({ data, onChange, onNext, aideNiveau, avertissementIde
             )}
           </div>
         </div>
-        {/* Réinscription : nom ou prénom de l'inscription retrouvée modifié (zone annoncée par les lecteurs d'écran) */}
-        <div role="status">
-          {avertissementIdentite && <p className="input-hint identite-avertissement">⚠️ {avertissementIdentite}</p>}
-        </div>
 
         {/* Sexe */}
         <div className="form-group">
@@ -217,7 +249,6 @@ const StepPersonalInfo = ({ data, onChange, onNext, aideNiveau, avertissementIde
           <label>
             Niveau académique <span className="required">*</span>
           </label>
-          {aideNiveau && <p className="input-hint niveau-aide">{aideNiveau}</p>}
 
           {/* Étape 1 : Sélection du cycle */}
           <div className="niveau-selection">

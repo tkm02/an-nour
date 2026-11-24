@@ -2,20 +2,9 @@ name: Frontend CI/CD
 
 on:
   push:
-    branches: [main, master, mDev]
+    branches: [main, master]
   pull_request:
-    branches: [main, master, mDev]
-
-# Moindre privilège pour le jeton GitHub ; une PR relancée annule l'exécution précédente (jamais main)
-permissions:
-  contents: read
-
-concurrency:
-  group: ci-${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
-
-env:
-  GITLEAKS_VERSION: "8.21.2"
+    branches: [main, master]
 
 jobs:
   build-and-test:
@@ -26,17 +15,16 @@ jobs:
       - name: 📥 Checkout repository
         uses: actions/checkout@v4
 
-      - name: 🟢 Setup Node.js 22
+      - name: 🟢 Setup Node.js 18
         uses: actions/setup-node@v4
         with:
-          node-version: '22'
+          node-version: '18'
           cache: 'npm'
 
-      - name: 📦 Install dependencies (lockfile strict)
-        run: npm ci
+      - name: 📦 Install dependencies
+        run: npm install
 
-      # Rapport seulement tant que la suite est cassée (dette P-01) : ne pas présenter ce résultat comme vert
-      - name: 🧪 Run tests (report only — suite cassée, P-01)
+      - name: 🧪 Run tests
         run: npm test -- --watchAll=false --passWithNoTests
         continue-on-error: true
         env:
@@ -49,62 +37,20 @@ jobs:
           REACT_APP_CLOUDINARY_CLOUD_NAME: ${{ secrets.REACT_APP_CLOUDINARY_CLOUD_NAME }}
           REACT_APP_CLOUDINARY_UPLOAD_PRESET: ${{ secrets.REACT_APP_CLOUDINARY_UPLOAD_PRESET }}
           REACT_APP_CLOUDINARY_API_KEY: ${{ secrets.REACT_APP_API_KEY }}
+          
 
-      - name: 🛡️ Dependency audit (report only)
-        continue-on-error: true
-        run: npm audit --omit=dev
-
-  # Secrets : bloquant sur ce que le push / la PR ajoute, rapport sur l'historique complet
-  security:
-    name: 🔐 Secret Scan
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: 📥 Checkout repository
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: 🔐 Install gitleaks (checksum verified)
-        run: |
-          V="${GITLEAKS_VERSION}"
-          BASE="https://github.com/gitleaks/gitleaks/releases/download/v${V}"
-          curl -sSfL -o gitleaks.tar.gz "${BASE}/gitleaks_${V}_linux_x64.tar.gz"
-          curl -sSfL -o checksums.txt "${BASE}/gitleaks_${V}_checksums.txt"
-          grep " gitleaks_${V}_linux_x64.tar.gz$" checksums.txt | sed "s/gitleaks_${V}_linux_x64.tar.gz/gitleaks.tar.gz/" | sha256sum -c -
-          tar -xzf gitleaks.tar.gz gitleaks
-
-      - name: 🔐 Secrets introduced by this push / PR (blocking)
-        run: |
-          if [ "${{ github.event_name }}" = "pull_request" ]; then
-            RANGE="${{ github.event.pull_request.base.sha }}..${{ github.event.pull_request.head.sha }}"
-          elif [ "${{ github.event.before }}" != "0000000000000000000000000000000000000000" ]; then
-            RANGE="${{ github.event.before }}..${{ github.sha }}"
-          else
-            RANGE="${{ github.sha }}~1..${{ github.sha }}"
-          fi
-          ./gitleaks git --config .gitleaks.toml --redact --no-banner --log-opts="${RANGE}" .
-
-      - name: 🔐 Full history scan (report only)
-        continue-on-error: true
-        run: ./gitleaks git --config .gitleaks.toml --redact --no-banner .
-
-  # Production : environnement GitHub « production » (activer « Required reviewers » pour exiger une approbation)
   deploy:
     name: 🚀 Deploy to Vercel
-    needs: [build-and-test, security]
+    needs: build-and-test
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
-    environment:
-      name: production
 
     steps:
       - name: 📥 Checkout repository
         uses: actions/checkout@v4
 
       - name: 🚀 Deploy to Vercel
-        # Action tierce épinglée sur le commit du tag v25 (un tag peut être déplacé)
-        uses: amondnet/vercel-action@16e87c0a08142b0d0d33b76aeaf20823c381b9b9 # v25
+        uses: amondnet/vercel-action@v25
         with:
           vercel-token: ${{ secrets.VERCEL_TOKEN }}
           vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}

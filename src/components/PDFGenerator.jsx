@@ -1,7 +1,6 @@
 // src/utils/PDFGenerator.js
 import jsPDF from 'jspdf';
-// Version réduite du logo (480 px) réservée au PDF : l'original (2517 px) produisait une fiche d'environ 15 Mo
-import logoAnnour from '../images/annour-logo-pdf.png';
+import logoAnnour from '../images/ANNOUR LOGO.PNG';
 
 const PDFGenerator = {
   generateRegistrationPDF: (data, qrCodeUrl) => {
@@ -89,8 +88,7 @@ try {
   const imgX = circleX + (circleSize - logoWidth) / 2;
   const imgY = circleY + (circleSize - logoHeight) / 2;
 
-  // 'FAST' : image compressée dans le PDF (sinon stockée sans compression)
-  doc.addImage(logoAnnour, 'PNG', imgX, imgY, logoWidth, logoHeight, 'logo-annour', 'FAST');
+  doc.addImage(logoAnnour, 'PNG', imgX, imgY, logoWidth, logoHeight);
 
 } catch (error) {
   throw error;
