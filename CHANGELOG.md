@@ -4,6 +4,10 @@ Toutes les évolutions notables de ce dépôt sont consignées ici.
 Format : [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/) · versions : [SemVer](https://semver.org/lang/fr/).
 
 ## [Non publié]
+### Documentation
+- Domaine de production `https://annour.ci` (`www` redirigé) : `docs/ENVIRONMENTS.md` ; aucune adresse en dur dans le
+  code. L'origine doit être ajoutée à `CORS_ORIGINS` de l'API (procédure : Backend `docs/DEPLOYMENT.md` §6).
+
 ### Modifié
 - Recensement CO (branche `feature/co-qualites-par-commission`, 2026-11-24) : surtitre « Séminaire An-Nour 8.0 —
   An-Nour 2026 » agrandi ; qualités proposées selon la commission (`qualites_par_commission` de l'API : Comité
