@@ -5,6 +5,7 @@ import useValidationEtape from "./useValidationEtape";
 import {
   CHAMPS_FICHE,
   formaterTelephone,
+  qualitesPourCommission,
   TEXTE_SANTE_MAX,
   validerFiche,
 } from "../../utils/recensementCo/validation";
@@ -16,6 +17,7 @@ const StepFiche = ({
   onChange,
   commissions,
   qualites,
+  qualitesParCommission = null,
   trouvee,
   dejaSoumise,
   nonRetrouve,
@@ -32,10 +34,19 @@ const StepFiche = ({
   enCours = false,
 }) => {
   const codesQualites = useMemo(() => qualites.map((q) => q.code), [qualites]);
-  const valider = useCallback(
-    (v) => validerFiche(v, { commissions, qualites: codesQualites }),
-    [commissions, codesQualites]
+  // Qualités proposées pour une commission ([] : aucune commission choisie, ou commission sans qualité)
+  const proposeesPour = useCallback(
+    (commission) => qualitesPourCommission(commission, codesQualites, qualitesParCommission),
+    [codesQualites, qualitesParCommission]
   );
+  const valider = useCallback(
+    (v) => validerFiche(v, { commissions, qualites: proposeesPour(v.commission) }),
+    [commissions, proposeesPour]
+  );
+  const codesProposes = proposeesPour(valeurs.commission);
+  const optionsQualite = qualites.filter((q) => codesProposes.includes(q.code));
+  const commissionChoisie = Boolean(valeurs.commission);
+  const sansQualite = commissionChoisie && codesProposes.length === 0;
   const { erreurs, marquer, verifier } = useValidationEtape({
     valeurs,
     valider,
@@ -192,7 +203,12 @@ const StepFiche = ({
                 name="commission"
                 value={valeurs.commission}
                 onChange={(e) => {
-                  onChange("commission", e.target.value);
+                  const commission = e.target.value;
+                  onChange("commission", commission);
+                  // Qualité non proposée pour la nouvelle commission : à choisir de nouveau
+                  if (valeurs.qualite && !proposeesPour(commission).includes(valeurs.qualite)) {
+                    onChange("qualite", "");
+                  }
                   marquer("commission");
                 }}
                 onBlur={() => marquer("commission")}
@@ -206,33 +222,36 @@ const StepFiche = ({
               </select>
             )}
           </Champ>
-          <Champ
-            id={`${PREFIXE}qualite`}
-            libelle="Qualité"
-            requis
-            aide="Votre rôle dans la commission"
-            erreur={erreurs.qualite}
-          >
-            {(attributs) => (
-              <select
-                {...attributs}
-                name="qualite"
-                value={valeurs.qualite}
-                onChange={(e) => {
-                  onChange("qualite", e.target.value);
-                  marquer("qualite");
-                }}
-                onBlur={() => marquer("qualite")}
-              >
-                <option value="">Choisissez…</option>
-                {qualites.map((qualite) => (
-                  <option key={qualite.code} value={qualite.code}>
-                    {qualite.libelle}
-                  </option>
-                ))}
-              </select>
-            )}
-          </Champ>
+          {!sansQualite && (
+            <Champ
+              id={`${PREFIXE}qualite`}
+              libelle="Qualité"
+              requis
+              aide="Votre rôle dans la commission"
+              erreur={erreurs.qualite}
+            >
+              {(attributs) => (
+                <select
+                  {...attributs}
+                  name="qualite"
+                  value={valeurs.qualite}
+                  disabled={!commissionChoisie}
+                  onChange={(e) => {
+                    onChange("qualite", e.target.value);
+                    marquer("qualite");
+                  }}
+                  onBlur={() => marquer("qualite")}
+                >
+                  <option value="">{commissionChoisie ? "Choisissez…" : "Choisissez d'abord la commission"}</option>
+                  {optionsQualite.map((qualite) => (
+                    <option key={qualite.code} value={qualite.code}>
+                      {qualite.libelle}
+                    </option>
+                  ))}
+                </select>
+              )}
+            </Champ>
+          )}
         </div>
       </fieldset>
 

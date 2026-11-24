@@ -132,7 +132,28 @@ export const validerIdentification = (valeurs, commissionsPrecedentes = []) => {
   });
 };
 
-/** Erreurs de l'étape 2. `qualites` : codes de la configuration. */
+/**
+ * Codes de qualité proposés pour une commission (`[]` : aucune commission choisie, ou commission sans qualité).
+ * `qualitesParCommission` (configuration) : libellé → codes ; commission absente de la table (configuration
+ * antérieure à cette règle) : toutes les qualités (`codes`).
+ */
+export const qualitesPourCommission = (commission, codes = [], qualitesParCommission = null) => {
+  if (!texte(commission)) return [];
+  if (qualitesParCommission && Object.prototype.hasOwnProperty.call(qualitesParCommission, commission)) {
+    const proposees = qualitesParCommission[commission];
+    return Array.isArray(proposees) ? proposees : [];
+  }
+  return codes;
+};
+
+/** Vrai si la commission choisie ne demande aucune qualité (Secrétaire Régional, Superviseur…). */
+export const commissionSansQualite = (commission, codes = [], qualitesParCommission = null) =>
+  Boolean(texte(commission)) && qualitesPourCommission(commission, codes, qualitesParCommission).length === 0;
+
+/**
+ * Erreurs de l'étape 2. `qualites` : codes proposés pour la commission choisie (`qualitesPourCommission`) ; liste
+ * vide → aucune qualité demandée (commission sans qualité, ou commission non choisie : son erreur suffit).
+ */
 export const validerFiche = (valeurs, { commissions = [], qualites = [] } = {}) =>
   sansVides({
     nom: validerNom(valeurs.nom, "Le nom"),
@@ -141,7 +162,7 @@ export const validerFiche = (valeurs, { commissions = [], qualites = [] } = {}) 
     telephone: validerTelephone(valeurs.telephone),
     email: validerEmail(valeurs.email),
     commission: validerChoix(valeurs.commission, commissions, "Choisissez votre commission pour cette édition."),
-    qualite: validerChoix(valeurs.qualite, qualites, "Choisissez votre qualité."),
+    qualite: qualites.length ? validerChoix(valeurs.qualite, qualites, "Choisissez votre qualité.") : "",
     allergies: validerTexteSante(valeurs.allergies),
     antecedents_medicaux: validerTexteSante(valeurs.antecedents_medicaux),
   });

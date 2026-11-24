@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { ApercuPhoto } from "./PhotoField";
-import { formaterTelephone } from "../../utils/recensementCo/validation";
+import { commissionSansQualite, formaterTelephone } from "../../utils/recensementCo/validation";
 
 const NON_RENSEIGNE = "Non renseigné";
 
@@ -10,9 +10,17 @@ const valeurOuVide = (valeur, vide = NON_RENSEIGNE) =>
   typeof valeur === "string" && valeur.trim() ? valeur.trim() : vide;
 
 /** Fiche en lecture seule (récapitulatif avant envoi, ou fiche verrouillée). */
-export const RecapitulatifFiche = ({ valeurs, qualites, photo, santeMasquee = false }) => {
+export const RecapitulatifFiche = ({ valeurs, qualites, qualitesParCommission = null, photo, santeMasquee = false }) => {
   const videSante = santeMasquee ? SANTE_CONSERVEE : NON_RENSEIGNE;
   const qualite = qualites.find((q) => q.code === valeurs.qualite);
+  // Commission sans qualité (Secrétaire Régional, Superviseur…) : pas de ligne « Qualité »
+  const sansQualite =
+    !qualite &&
+    commissionSansQualite(
+      valeurs.commission,
+      qualites.map((q) => q.code),
+      qualitesParCommission
+    );
   const lignes = [
     {
       titre: "Identité",
@@ -33,7 +41,7 @@ export const RecapitulatifFiche = ({ valeurs, qualites, photo, santeMasquee = fa
       titre: "Commission et qualité",
       elements: [
         ["Commission", valeurOuVide(valeurs.commission)],
-        ["Qualité", qualite ? qualite.libelle : NON_RENSEIGNE],
+        ...(sansQualite ? [] : [["Qualité", qualite ? qualite.libelle : NON_RENSEIGNE]]),
       ],
     },
     {
@@ -101,6 +109,7 @@ const InformationDonnees = ({ version }) => (
 const StepRecapitulatif = ({
   valeurs,
   qualites,
+  qualitesParCommission = null,
   photo,
   onModifier,
   onEnvoyer,
@@ -133,7 +142,13 @@ const StepRecapitulatif = ({
           <p>Vous avez déjà envoyé votre fiche pour cette édition : ce nouvel envoi la mettra à jour.</p>
         </div>
       )}
-      <RecapitulatifFiche valeurs={valeurs} qualites={qualites} photo={photo} santeMasquee={santeMasquee} />
+      <RecapitulatifFiche
+        valeurs={valeurs}
+        qualites={qualites}
+        qualitesParCommission={qualitesParCommission}
+        photo={photo}
+        santeMasquee={santeMasquee}
+      />
 
       <div className={`rco-consentement${erreurConsentement ? " rco-champ-erreur" : ""}`}>
         <label className="rco-option rco-option-consentement" htmlFor="consentement">

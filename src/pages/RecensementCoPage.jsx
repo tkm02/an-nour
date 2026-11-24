@@ -40,6 +40,7 @@ import {
   ANCIEN_NON,
   CHAMPS_FICHE,
   CHAMPS_IDENTIFICATION,
+  qualitesPourCommission,
   VALEUR_AUCUNE_COMMISSION,
 } from "../utils/recensementCo/validation";
 import "./RecensementCoPage.css";
@@ -190,6 +191,9 @@ const RecensementCoPage = ({ delaiMinimalMs = DELAI_MINIMAL_MS }) => {
   const commissions = useMemo(() => donnees?.commissions || [], [donnees]);
   const commissionsPrecedentes = useMemo(() => donnees?.commissions_precedentes || [], [donnees]);
   const qualites = useMemo(() => donnees?.qualites || [], [donnees]);
+  const codesQualites = useMemo(() => qualites.map((q) => q.code), [qualites]);
+  // Libellé de commission → codes de qualité proposés ([] : commission sans qualité) ; absent : API antérieure
+  const qualitesParCommission = donnees?.qualites_par_commission || null;
   // « Non » à « Étiez-vous membre du CO l'an passé ? » : fiche vide, identification envoyée avant le récapitulatif
   const nouveauMembre = identification.ancien_membre === ANCIEN_NON;
   const sessionVerrouillee = Boolean(session?.verrouillee);
@@ -345,7 +349,9 @@ const RecensementCoPage = ({ delaiMinimalMs = DELAI_MINIMAL_MS }) => {
 
   const ajusterAuxOptions = (valeurs) => {
     valeurs.commission = libelleOfficiel(valeurs.commission, commissions);
-    if (!qualites.some((q) => q.code === valeurs.qualite)) valeurs.qualite = "";
+    if (!qualitesPourCommission(valeurs.commission, codesQualites, qualitesParCommission).includes(valeurs.qualite)) {
+      valeurs.qualite = "";
+    }
     return valeurs;
   };
 
@@ -381,8 +387,11 @@ const RecensementCoPage = ({ delaiMinimalMs = DELAI_MINIMAL_MS }) => {
     setRequete({ enCours: true, erreur: null });
     try {
       const reponse = await demanderSession(identification);
-      const codesQualites = qualites.map((q) => q.code);
-      let valeurs = valeursFicheInitiales(identification, reponse.fiche, { commissions, qualites: codesQualites });
+      let valeurs = valeursFicheInitiales(identification, reponse.fiche, {
+        commissions,
+        qualites: codesQualites,
+        qualitesParCommission,
+      });
       // Mémoire de la page : identification du parcours « oui », ou identité saisie dans la fiche du parcours « non »
       const identiteMemoire =
         memoire.current &&
@@ -566,10 +575,20 @@ const RecensementCoPage = ({ delaiMinimalMs = DELAI_MINIMAL_MS }) => {
       {session.modificationsNonEnregistrees ? (
         <>
           <h3 className="rco-sous-titre">Vos modifications (non enregistrées)</h3>
-          <RecapitulatifFiche valeurs={fiche} qualites={qualites} photo={photo} />
+          <RecapitulatifFiche
+            valeurs={fiche}
+            qualites={qualites}
+            qualitesParCommission={qualitesParCommission}
+            photo={photo}
+          />
         </>
       ) : (
-        <RecapitulatifFiche valeurs={fiche} qualites={qualites} photo={photo} />
+        <RecapitulatifFiche
+          valeurs={fiche}
+          qualites={qualites}
+          qualitesParCommission={qualitesParCommission}
+          photo={photo}
+        />
       )}
       <div className="rco-actions">
         <button type="button" className="rco-bouton rco-bouton-secondaire" onClick={recommencer}>
@@ -654,6 +673,7 @@ const RecensementCoPage = ({ delaiMinimalMs = DELAI_MINIMAL_MS }) => {
             onChange={modifierFiche}
             commissions={commissions}
             qualites={qualites}
+            qualitesParCommission={qualitesParCommission}
             trouvee={session?.trouvee}
             dejaSoumise={session?.dejaSoumise}
             nonRetrouve={session?.nonRetrouve}
@@ -681,6 +701,7 @@ const RecensementCoPage = ({ delaiMinimalMs = DELAI_MINIMAL_MS }) => {
           <StepRecapitulatif
             valeurs={fiche}
             qualites={qualites}
+            qualitesParCommission={qualitesParCommission}
             photo={photo}
             dejaSoumise={nouveauMembre && session?.dejaSoumise}
             santeMasquee={session?.santeMasquee}
@@ -737,7 +758,7 @@ const RecensementCoPage = ({ delaiMinimalMs = DELAI_MINIMAL_MS }) => {
       <header className="rco-entete">
         <div className="rco-conteneur">
           <p className="rco-surtitre">
-            Séminaire An-Nour{donnees?.edition?.libelle ? ` — ${donnees.edition.libelle}` : ""}
+            Séminaire An-Nour 8.0{donnees?.edition?.libelle ? ` — ${donnees.edition.libelle}` : ""}
           </p>
           <h1>Recensement des membres du comité d'organisation</h1>
         </div>

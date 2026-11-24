@@ -2,7 +2,7 @@
 // Construction des corps de requête du recensement CO, strictement selon le contrat d'API
 // (dépôt Backend, docs/features/recensement-co.md, section « Public ») : aucun champ supplémentaire.
 
-import { normaliserTelephone, VALEUR_AUCUNE_COMMISSION } from "./validation";
+import { normaliserTelephone, qualitesPourCommission, VALEUR_AUCUNE_COMMISSION } from "./validation";
 
 const texte = (valeur) => (typeof valeur === "string" ? valeur.trim() : "");
 
@@ -63,7 +63,7 @@ export const construireFiche = (valeurs, jetonSession, { supprimerPhoto = false 
     telephone: normaliserTelephone(valeurs.telephone) || texte(valeurs.telephone),
     email: texte(valeurs.email).toLowerCase(),
     commission: valeurs.commission,
-    qualite: valeurs.qualite,
+    qualite: valeurs.qualite || null, // null : commission sans qualité
     consentement: true,
     supprimer_photo: Boolean(supprimerPhoto),
   };
@@ -89,9 +89,13 @@ export const urlPhotoSure = (url) => (typeof url === "string" && /^https:\/\//i.
 /**
  * Valeurs de l'étape 2 à partir de la réponse d'identification. Fiche retrouvée : toutes ses informations (santé
  * comprise) ; champs `null` (fiches 2025 incomplètes) complétés par la saisie de l'étape 1. Commission et qualité
- * ramenées aux options de la configuration (sinon vides : à choisir).
+ * ramenées aux options de la configuration (sinon vides : à choisir) ; la qualité doit convenir à la commission.
  */
-export const valeursFicheInitiales = (identification, fiche, { commissions = [], qualites = [] } = {}) => {
+export const valeursFicheInitiales = (
+  identification,
+  fiche,
+  { commissions = [], qualites = [], qualitesParCommission = null } = {}
+) => {
   const source = fiche || {};
   const valeur = (champ) => (typeof source[champ] === "string" ? source[champ] : "");
   const valeurs = { ...FICHE_VIDE };
@@ -105,6 +109,10 @@ export const valeursFicheInitiales = (identification, fiche, { commissions = [],
   }
   valeurs.sexe = ["M", "F"].includes(valeurs.sexe) ? valeurs.sexe : "";
   valeurs.commission = libelleOfficiel(valeurs.commission, commissions);
-  valeurs.qualite = qualites.includes(valeurs.qualite) ? valeurs.qualite : "";
+  valeurs.qualite = qualitesPourCommission(valeurs.commission, qualites, qualitesParCommission).includes(
+    valeurs.qualite
+  )
+    ? valeurs.qualite
+    : "";
   return valeurs;
 };
