@@ -737,7 +737,7 @@ const RecensementCoPage = ({ delaiMinimalMs = DELAI_MINIMAL_MS }) => {
       <header className="rco-entete">
         <div className="rco-conteneur">
           <p className="rco-surtitre">
-            Séminaire An-Nour{donnees?.edition?.libelle ? ` — ${donnees.edition.libelle}` : ""}
+            Séminaire An-Nour 8.0{donnees?.edition?.libelle ? ` — ${donnees.edition.libelle}` : ""}
           </p>
           <h1>Recensement des membres du comité d'organisation</h1>
         </div>
