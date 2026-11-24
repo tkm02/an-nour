@@ -1,8 +1,10 @@
 import {
   calculerAge,
+  commissionSansQualite,
   formaterTelephone,
   normaliserTelephone,
   premierChampEnErreur,
+  qualitesPourCommission,
   CHAMPS_FICHE,
   CHAMPS_IDENTIFICATION,
   validerEmail,
@@ -150,5 +152,47 @@ describe("validerFiche", () => {
   it("désigne le premier champ en erreur dans l'ordre d'affichage", () => {
     expect(premierChampEnErreur({ qualite: "x", email: "y" }, CHAMPS_FICHE)).toBe("email");
     expect(premierChampEnErreur({}, CHAMPS_FICHE)).toBeNull();
+  });
+
+  it("n'exige aucune qualité quand la liste proposée est vide (commission sans qualité)", () => {
+    const fiche = { ...valides, commission: "Superviseur", qualite: "" };
+    const erreurs = validerFiche(fiche, { commissions: ["Superviseur"], qualites: [] }, AUJOURDHUI);
+    expect(erreurs).toEqual({});
+  });
+
+  it("refuse une qualité non proposée pour la commission", () => {
+    const options = { commissions: ["Comité Managérial"], qualites: ["manager_general", "manager_general_adjoint"] };
+    const erreurs = validerFiche({ ...valides, commission: "Comité Managérial", qualite: "membre" }, options);
+    expect(erreurs).toEqual({ qualite: "Choisissez votre qualité." });
+  });
+});
+
+describe("qualitesPourCommission / commissionSansQualite", () => {
+  const codes = ["membre", "responsable", "responsable_adjoint", "manager_general", "manager_general_adjoint"];
+  const table = {
+    "Comité Managérial": ["manager_general", "manager_general_adjoint"],
+    Santé: ["membre", "responsable", "responsable_adjoint"],
+    Superviseur: [],
+  };
+
+  it("donne les qualités de la commission choisie", () => {
+    expect(qualitesPourCommission("Comité Managérial", codes, table)).toEqual(["manager_general", "manager_general_adjoint"]);
+    expect(qualitesPourCommission("Santé", codes, table)).toEqual(["membre", "responsable", "responsable_adjoint"]);
+    expect(qualitesPourCommission("Superviseur", codes, table)).toEqual([]);
+  });
+
+  it("aucune qualité tant que la commission n'est pas choisie", () => {
+    expect(qualitesPourCommission("", codes, table)).toEqual([]);
+    expect(commissionSansQualite("", codes, table)).toBe(false);
+  });
+
+  it("configuration sans table (API antérieure) ou commission absente : toutes les qualités", () => {
+    expect(qualitesPourCommission("Santé", codes, null)).toEqual(codes);
+    expect(qualitesPourCommission("Logistique", codes, table)).toEqual(codes);
+  });
+
+  it("repère les commissions sans qualité", () => {
+    expect(commissionSansQualite("Superviseur", codes, table)).toBe(true);
+    expect(commissionSansQualite("Comité Managérial", codes, table)).toBe(false);
   });
 });

@@ -82,6 +82,10 @@ describe("construireFiche", () => {
     });
   });
 
+  it("envoie une qualité null pour une commission sans qualité", () => {
+    expect(construireFiche({ ...fiche, commission: "Superviseur", qualite: "" }, "j").qualite).toBeNull();
+  });
+
   it("demande la suppression de la photo existante si elle a été retirée", () => {
     expect(construireFiche(fiche, "j", { supprimerPhoto: true }).supprimer_photo).toBe(true);
   });
@@ -163,5 +167,19 @@ describe("valeursFicheInitiales", () => {
     expect(valeurs.commission).toBe("");
     expect(valeurs.qualite).toBe("");
     expect(valeurs.sexe).toBe("");
+  });
+
+  it("vide une qualité qui ne convient pas à la commission", () => {
+    const avecTable = {
+      commissions: ["Santé", "Comité Managérial", "Superviseur"],
+      qualites: ["membre", "manager_general"],
+      qualitesParCommission: { Santé: ["membre"], "Comité Managérial": ["manager_general"], Superviseur: [] },
+    };
+    const initiales = (commission, qualite) =>
+      valeursFicheInitiales(identification, { commission, qualite }, avecTable).qualite;
+    expect(initiales("Comité Managérial", "membre")).toBe("");
+    expect(initiales("Comité Managérial", "manager_general")).toBe("manager_general");
+    expect(initiales("Superviseur", "membre")).toBe("");
+    expect(initiales("Santé", "membre")).toBe("membre");
   });
 });

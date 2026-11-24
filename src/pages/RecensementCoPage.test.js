@@ -739,3 +739,72 @@ describe("RecensementCoPage — corrections de la revue du 2026-11-23", () => {
     expect(screen.getByRole("radio", { name: "Non" })).toBeChecked();
   });
 });
+
+describe("RecensementCoPage — qualités selon la commission (2026-11-24)", () => {
+  const CONFIGURATION_QUALITES = {
+    ...CONFIGURATION,
+    commissions: ["Comité Managérial", "Santé", "Superviseur"],
+    qualites: [
+      ...CONFIGURATION.qualites,
+      { code: "manager_general", libelle: "Manager Général" },
+      { code: "manager_general_adjoint", libelle: "Manager Général Adjoint" },
+    ],
+    qualites_par_commission: {
+      "Comité Managérial": ["manager_general", "manager_general_adjoint"],
+      Santé: ["membre", "responsable", "responsable_adjoint"],
+      Superviseur: [],
+    },
+  };
+
+  const ouvrirFiche = async () => {
+    service.chargerConfiguration.mockResolvedValue(CONFIGURATION_QUALITES);
+    service.identifierMembre.mockResolvedValue(NOUVEAU);
+    await afficher();
+    repondreAncien("Non");
+    cliquer("Continuer");
+    await screen.findByRole("heading", { name: "Complétez votre fiche" });
+    saisir(/^Nom/, "Nouveau");
+    saisir(/^Prénom\(s\)/, "Fictif");
+    fireEvent.click(screen.getByRole("radio", { name: "Masculin" }));
+    saisir(/^Téléphone/, "05 00 00 00 00");
+    saisir(/^Adresse email/, "nouveau.fictif@exemple.ci");
+  };
+
+  const optionsQualite = () =>
+    within(screen.getByLabelText(/^Qualité/))
+      .getAllByRole("option")
+      .map((option) => option.textContent);
+
+  it("affiche l'édition « An-Nour 8.0 » dans le surtitre", async () => {
+    await afficher();
+    expect(screen.getByText("Séminaire An-Nour 8.0 — Édition de test")).toBeInTheDocument();
+  });
+
+  it("Comité Managérial : seules les qualités Manager Général et Adjoint sont proposées", async () => {
+    await ouvrirFiche();
+    expect(screen.getByLabelText(/^Qualité/)).toBeDisabled(); // commission pas encore choisie
+    saisir(/^Commission pour cette édition/, "Comité Managérial");
+    expect(optionsQualite()).toEqual(["Choisissez…", "Manager Général", "Manager Général Adjoint"]);
+    saisir(/^Qualité/, "manager_general");
+    // Changement vers une commission où la qualité n'existe pas : elle est à choisir de nouveau
+    saisir(/^Commission pour cette édition/, "Santé");
+    expect(screen.getByLabelText(/^Qualité/)).toHaveValue("");
+    expect(optionsQualite()).toEqual(["Choisissez…", "Membre", "Responsable", "Responsable adjoint"]);
+  });
+
+  it("commission sans qualité : champ masqué, aucune qualité au récapitulatif ni à l'envoi", async () => {
+    service.soumettreFiche.mockResolvedValue(ENREGISTREE);
+    await ouvrirFiche();
+    saisir(/^Commission pour cette édition/, "Superviseur");
+    expect(screen.queryByLabelText(/^Qualité/)).not.toBeInTheDocument();
+    cliquer("Continuer");
+    await screen.findByRole("heading", { name: "Récapitulatif et envoi" });
+    expect(screen.queryByText("Qualité")).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole("checkbox"));
+    cliquer("Envoyer ma fiche");
+    await waitFor(() => expect(service.soumettreFiche).toHaveBeenCalled());
+    expect(service.soumettreFiche.mock.calls[0][0]).toEqual(
+      expect.objectContaining({ commission: "Superviseur", qualite: null })
+    );
+  });
+});

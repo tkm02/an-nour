@@ -4,6 +4,15 @@ Toutes les évolutions notables de ce dépôt sont consignées ici.
 Format : [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/) · versions : [SemVer](https://semver.org/lang/fr/).
 
 ## [Non publié]
+### Modifié
+- Recensement CO (branche `feature/co-qualites-par-commission`, 2026-11-24) : surtitre « Séminaire An-Nour 8.0 —
+  An-Nour 2026 » agrandi ; qualités proposées selon la commission (`qualites_par_commission` de l'API : Comité
+  Managérial → Manager Général / Manager Général Adjoint ; Secrétaire Régional, Président de Sous-Comité,
+  Superviseur → champ « Qualité » masqué, `qualite: null` envoyé, ligne absente du récapitulatif) ; qualité remise à
+  choisir quand la commission change ; sur grand écran, libellés, aides, champs et erreurs alignés d'une colonne à
+  l'autre (CSS `subgrid`, plus de décalage Commission / Qualité). **Nécessite le backend
+  `feature/co-qualites-par-commission` déployé AVANT ce site.**
+
 ### Sécurité
 - Recensement CO (branche `fix/recensement-co-securite`, revue du 2026-11-23) : le champ piège anti-robot rempli à
   l'étape 1 est transmis à l'identification du parcours « non » (il partait toujours vide) ; santé non réaffichée
