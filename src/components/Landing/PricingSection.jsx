@@ -67,7 +67,7 @@ const PricingSection = () => {
 
             <div className="pricing-amount">
               <div className="amount-wrapper">
-                <span className="amount">6 000</span>
+                <span className="amount">7 000</span>
                 <span className="currency-symbol">FCFA</span>
               </div>
               <p className="pricing-subtitle">Par participant</p>

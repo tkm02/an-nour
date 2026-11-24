@@ -2,11 +2,10 @@ import React, { useCallback, useMemo } from "react";
 import Champ from "./Champ";
 import PhotoField from "./PhotoField";
 import useValidationEtape from "./useValidationEtape";
-import { AIDE_DATE } from "./StepIdentification";
 import {
-  bornesDateNaissance,
   CHAMPS_FICHE,
   formaterTelephone,
+  qualitesPourCommission,
   TEXTE_SANTE_MAX,
   validerFiche,
 } from "../../utils/recensementCo/validation";
@@ -18,9 +17,11 @@ const StepFiche = ({
   onChange,
   commissions,
   qualites,
+  qualitesParCommission = null,
   trouvee,
   dejaSoumise,
   nonRetrouve,
+  santeMasquee = false,
   contact,
   photo,
   onChoisirPhoto,
@@ -30,12 +31,22 @@ const StepFiche = ({
   erreursServeur,
   onValider,
   onRetour,
+  enCours = false,
 }) => {
   const codesQualites = useMemo(() => qualites.map((q) => q.code), [qualites]);
-  const valider = useCallback(
-    (v) => validerFiche(v, { commissions, qualites: codesQualites }),
-    [commissions, codesQualites]
+  // Qualités proposées pour une commission ([] : aucune commission choisie, ou commission sans qualité)
+  const proposeesPour = useCallback(
+    (commission) => qualitesPourCommission(commission, codesQualites, qualitesParCommission),
+    [codesQualites, qualitesParCommission]
   );
+  const valider = useCallback(
+    (v) => validerFiche(v, { commissions, qualites: proposeesPour(v.commission) }),
+    [commissions, proposeesPour]
+  );
+  const codesProposes = proposeesPour(valeurs.commission);
+  const optionsQualite = qualites.filter((q) => codesProposes.includes(q.code));
+  const commissionChoisie = Boolean(valeurs.commission);
+  const sansQualite = commissionChoisie && codesProposes.length === 0;
   const { erreurs, marquer, verifier } = useValidationEtape({
     valeurs,
     valider,
@@ -43,11 +54,10 @@ const StepFiche = ({
     prefixeId: PREFIXE,
     erreursServeur,
   });
-  const bornes = bornesDateNaissance();
 
   const soumettre = (evenement) => {
     evenement.preventDefault();
-    if (photoEnPreparation) return; // « Continuer » aria-disabled pendant la préparation de la photo
+    if (photoEnPreparation || enCours) return; // « Continuer » aria-disabled (photo en préparation, vérification)
     if (verifier()) onValider();
   };
 
@@ -87,10 +97,10 @@ const StepFiche = ({
         </div>
       ) : nonRetrouve ? (
         <div className="rco-alerte rco-alerte-info">
-          <p className="rco-alerte-titre">Nous n'avons pas retrouvé votre fiche de l'an dernier.</p>
+          <p className="rco-alerte-titre">Nous n'avons pas retrouvé votre fiche de l'an passé.</p>
           <p>
-            Vérifiez l'orthographe de votre nom, votre date de naissance et votre numéro (bouton Retour), ou continuez
-            pour créer votre fiche ; elle sera vérifiée par l'administration.
+            Vérifiez l'orthographe de votre nom, votre numéro et votre commission de l'an passé (bouton Retour), ou
+            continuez pour créer votre fiche ; elle sera vérifiée par l'administration.
           </p>
         </div>
       ) : (
@@ -104,27 +114,6 @@ const StepFiche = ({
         <div className="rco-grille">
           {texte("nom", "Nom", "family-name")}
           {texte("prenoms", "Prénom(s)", "given-name")}
-          <Champ
-            id={`${PREFIXE}date_naissance`}
-            libelle="Date de naissance"
-            requis
-            aide={AIDE_DATE}
-            erreur={erreurs.date_naissance}
-          >
-            {(attributs) => (
-              <input
-                {...attributs}
-                name="date_naissance"
-                type="date"
-                autoComplete="bday"
-                min={bornes.min}
-                max={bornes.max}
-                value={valeurs.date_naissance}
-                onChange={saisir("date_naissance")}
-                onBlur={() => marquer("date_naissance")}
-              />
-            )}
-          </Champ>
           <fieldset className={`rco-champ rco-choix${erreurs.sexe ? " rco-champ-erreur" : ""}`}>
             <legend className="rco-libelle">
               Sexe<span className="rco-requis" aria-hidden="true"> *</span>
@@ -168,7 +157,7 @@ const StepFiche = ({
             id={`${PREFIXE}telephone`}
             libelle="Téléphone"
             requis
-            aide="Numéro ivoirien (+225) à 10 chiffres"
+            aide="Numéro ivoirien (+225) à 10 chiffres, par exemple 07 00 00 00 00"
             erreur={erreurs.telephone}
           >
             {(attributs) => (
@@ -197,7 +186,7 @@ const StepFiche = ({
             type: "email",
             inputMode: "email",
             maxLength: 254,
-            aide: `Il servira à créer votre compte si votre commission a accès au back-office. Pas d'adresse e-mail ? ${
+            aide: `Pas d'adresse e-mail ? ${
               contact ? `Contactez l'administration : ${contact}` : "Contactez l'administration du séminaire."
             }`,
           })}
@@ -214,7 +203,12 @@ const StepFiche = ({
                 name="commission"
                 value={valeurs.commission}
                 onChange={(e) => {
-                  onChange("commission", e.target.value);
+                  const commission = e.target.value;
+                  onChange("commission", commission);
+                  // Qualité non proposée pour la nouvelle commission : à choisir de nouveau
+                  if (valeurs.qualite && !proposeesPour(commission).includes(valeurs.qualite)) {
+                    onChange("qualite", "");
+                  }
                   marquer("commission");
                 }}
                 onBlur={() => marquer("commission")}
@@ -228,33 +222,36 @@ const StepFiche = ({
               </select>
             )}
           </Champ>
-          <Champ
-            id={`${PREFIXE}qualite`}
-            libelle="Qualité"
-            requis
-            aide="Votre rôle dans la commission"
-            erreur={erreurs.qualite}
-          >
-            {(attributs) => (
-              <select
-                {...attributs}
-                name="qualite"
-                value={valeurs.qualite}
-                onChange={(e) => {
-                  onChange("qualite", e.target.value);
-                  marquer("qualite");
-                }}
-                onBlur={() => marquer("qualite")}
-              >
-                <option value="">Choisissez…</option>
-                {qualites.map((qualite) => (
-                  <option key={qualite.code} value={qualite.code}>
-                    {qualite.libelle}
-                  </option>
-                ))}
-              </select>
-            )}
-          </Champ>
+          {!sansQualite && (
+            <Champ
+              id={`${PREFIXE}qualite`}
+              libelle="Qualité"
+              requis
+              aide="Votre rôle dans la commission"
+              erreur={erreurs.qualite}
+            >
+              {(attributs) => (
+                <select
+                  {...attributs}
+                  name="qualite"
+                  value={valeurs.qualite}
+                  disabled={!commissionChoisie}
+                  onChange={(e) => {
+                    onChange("qualite", e.target.value);
+                    marquer("qualite");
+                  }}
+                  onBlur={() => marquer("qualite")}
+                >
+                  <option value="">{commissionChoisie ? "Choisissez…" : "Choisissez d'abord la commission"}</option>
+                  {optionsQualite.map((qualite) => (
+                    <option key={qualite.code} value={qualite.code}>
+                      {qualite.libelle}
+                    </option>
+                  ))}
+                </select>
+              )}
+            </Champ>
+          )}
         </div>
       </fieldset>
 
@@ -264,6 +261,12 @@ const StepFiche = ({
           Facultatif. Ces informations permettent à la commission Santé de vous prendre en charge si besoin pendant le
           séminaire ; seule cette commission y a accès. Elles ne sont pas conservées sur cet appareil.
         </p>
+        {santeMasquee && (
+          <p className="rco-alerte rco-alerte-info">
+            Pour protéger vos informations de santé, elles ne sont pas réaffichées ici. Laissez ces champs vides pour
+            conserver celles déjà enregistrées, ou saisissez-les pour les remplacer.
+          </p>
+        )}
         {[
           { champ: "allergies", libelle: "Allergies", aide: "ex. arachides, pénicilline. Laissez vide si aucune." },
           {
@@ -311,15 +314,22 @@ const StepFiche = ({
       </fieldset>
 
       <div className="rco-actions">
-        <button type="button" className="rco-bouton rco-bouton-secondaire" onClick={onRetour}>
+        <button
+          type="button"
+          className={`rco-bouton rco-bouton-secondaire${enCours ? " rco-bouton-occupe" : ""}`}
+          onClick={() => {
+            if (!enCours) onRetour(); // inactif pendant la vérification
+          }}
+          aria-disabled={enCours ? "true" : undefined}
+        >
           Retour
         </button>
         <button
           type="submit"
-          className={`rco-bouton rco-bouton-principal${photoEnPreparation ? " rco-bouton-occupe" : ""}`}
-          aria-disabled={photoEnPreparation ? "true" : undefined}
+          className={`rco-bouton rco-bouton-principal${photoEnPreparation || enCours ? " rco-bouton-occupe" : ""}`}
+          aria-disabled={photoEnPreparation || enCours ? "true" : undefined}
         >
-          Continuer
+          {enCours ? "Vérification…" : "Continuer"}
         </button>
       </div>
     </form>

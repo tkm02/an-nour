@@ -3,30 +3,10 @@
 // Contrat : 400 jeton expiré/invalide · 409 fiche validée · 413 photo trop lourde · 422 validation (`detail` =
 // liste Pydantic ou texte) · 429 (`Retry-After`) · 502 stockage photo · 503 recensement fermé.
 
-import {
-  ErreurApi,
-  erreursParChamp,
-  formaterDelai,
-  MESSAGE_CONFIGURATION,
-  MESSAGE_DELAI,
-  MESSAGE_RESEAU,
-  MESSAGE_SERVEUR,
-  normaliser,
-  texteNonVide,
-} from "../commun/erreursApi";
-
-// Ré-exports : le formulaire CO et ses tests importent ces éléments depuis ce module
-export {
-  ErreurApi,
-  erreursParChamp,
-  formaterDelai,
-  MESSAGE_CONFIGURATION,
-  MESSAGE_DELAI,
-  MESSAGE_RESEAU,
-  MESSAGE_SERVEUR,
-  normaliser,
-};
-
+export const MESSAGE_RESEAU =
+  "Impossible de contacter le serveur. Vérifiez votre connexion internet puis réessayez.";
+export const MESSAGE_DELAI =
+  "Le serveur met trop de temps à répondre. Il est peut-être en cours de démarrage : réessayez dans un instant.";
 export const MESSAGE_FERME = "Le recensement n'est pas ouvert pour le moment.";
 export const MESSAGE_SESSION =
   "Pour votre sécurité, votre session a expiré. Vos réponses sont conservées : appuyez de nouveau sur « Continuer ».";
@@ -39,6 +19,91 @@ export const MESSAGE_REPONSE_INVALIDE =
   "contactez l'administration.";
 export const MESSAGE_VERROUILLEE = "Fiche déjà validée : contactez l'administration pour la modifier.";
 export const MESSAGE_VALIDATION = "Certaines informations sont invalides. Corrigez les champs signalés.";
+export const MESSAGE_SERVEUR = "Une erreur est survenue sur le serveur. Réessayez dans quelques instants.";
+export const MESSAGE_CONFIGURATION =
+  "Le formulaire est mal configuré (adresse du serveur manquante). Prévenez l'administration du séminaire.";
+
+/** Erreur levée par le service : `type` = "http" | "reseau" | "delai" | "configuration" | "reponse" (corps inattendu). */
+export class ErreurApi extends Error {
+  constructor(type, { status = null, data = null, retryAfter = null } = {}) {
+    super(`Erreur API (${type}${status ? ` ${status}` : ""})`);
+    this.name = "ErreurApi";
+    this.type = type;
+    this.status = status;
+    this.data = data;
+    this.retryAfter = retryAfter;
+  }
+}
+
+const texteNonVide = (valeur) => typeof valeur === "string" && valeur.trim() !== "";
+
+/** Texte comparable : minuscules, sans accents ni ponctuation finale. */
+export const normaliser = (texte) =>
+  String(texte || "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .trim()
+    .replace(/[.!\s]+$/, "");
+
+/** Durée lisible à partir de l'en-tête Retry-After (secondes ou date HTTP). */
+export const formaterDelai = (retryAfter, maintenant = Date.now()) => {
+  if (retryAfter === null || retryAfter === undefined || retryAfter === "") {
+    return null;
+  }
+  let secondes = Number(retryAfter);
+  if (!Number.isFinite(secondes)) {
+    const date = Date.parse(retryAfter);
+    if (Number.isNaN(date)) return null;
+    secondes = (date - maintenant) / 1000;
+  }
+  secondes = Math.max(1, Math.ceil(secondes));
+  if (secondes < 60) {
+    return `${secondes} seconde${secondes > 1 ? "s" : ""}`;
+  }
+  const minutes = Math.ceil(secondes / 60);
+  return `${minutes} minute${minutes > 1 ? "s" : ""}`;
+};
+
+const MESSAGES_PYDANTIC = {
+  missing: "Ce champ est obligatoire.",
+  string_too_short: "Ce champ est obligatoire.",
+  string_too_long: "Texte trop long.",
+  literal_error: "Choix invalide.",
+  date_parsing: "Date invalide.",
+  date_from_datetime_parsing: "Date invalide.",
+  date_type: "Date invalide.",
+  bool_parsing: "Valeur invalide.",
+};
+
+/** Message en français pour une erreur Pydantic (les validateurs de l'API produisent « Value error, <texte> »). */
+const messagePydantic = (erreur, champ) => {
+  const message = typeof erreur?.msg === "string" ? erreur.msg : "";
+  if (champ === "email") {
+    return "Adresse email invalide.";
+  }
+  if (erreur?.type === "value_error" && message.startsWith("Value error, ")) {
+    const texte = message.slice("Value error, ".length).trim();
+    return texte.endsWith(".") ? texte : `${texte}.`;
+  }
+  return MESSAGES_PYDANTIC[erreur?.type] || "Valeur invalide.";
+};
+
+/** Erreurs par champ d'un `detail` Pydantic : {champ: message} (champs inconnus ignorés). */
+export const erreursParChamp = (detail, champsConnus = []) => {
+  if (!Array.isArray(detail)) {
+    return {};
+  }
+  const erreurs = {};
+  for (const erreur of detail) {
+    const loc = Array.isArray(erreur?.loc) ? erreur.loc : [];
+    const champ = loc.length ? String(loc[loc.length - 1]) : "";
+    if (champsConnus.includes(champ) && !erreurs[champ]) {
+      erreurs[champ] = messagePydantic(erreur, champ);
+    }
+  }
+  return erreurs;
+};
 
 /**
  * Interprétation d'une erreur pour l'interface.

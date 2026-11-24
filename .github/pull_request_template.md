@@ -24,12 +24,12 @@ Ne jamais inclure de secret, de token ni de donnée personnelle réelle.
 |---|---|---|
 | | | |
 
-Contrôles habituels : CI=false npm run build · suite Jest (cassée, voir docs/TESTING.md).
+Contrôles habituels : CI=false npm run build · CI=true npx react-scripts test --watchAll=false (voir docs/TESTING.md).
 
 ## Definition of Done
 - [ ] Critères d'acceptation remplis
 - [ ] Tests ajoutés pour le code nouveau ou modifié, aucune régression
-- [ ] `npm run build` sans avertissement ESLint nouveau ; tests Jest verts (quand la suite sera réparée)
+- [ ] `npm run build` sans avertissement ESLint nouveau ; tests Jest verts
 - [ ] Aucun constat sécurité 🔴/🟠 introduit
 - [ ] Cohérence avec le design system et les lignes directrices UX (si UI)
 - [ ] Documentation et `CHANGELOG.md` mis à jour

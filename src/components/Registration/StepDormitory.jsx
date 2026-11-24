@@ -1,12 +1,8 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import "./StepDormitory.css";
+import { API_URL } from "../../config";
 
-const API_URL = process.env.REACT_APP_API_URL; // Your API base URL
-
-// Dortoirs Pépinière (5–11 ans) identifiés par leur CODE, stable côté API (« PEPINIERE-G » / « PEPINIERE-F ») :
-// les libellés (« Pépinière – Garçons/Filles ») ne doivent pas servir à la sélection (bug P-30).
-export const codePepiniere = (sexe) => (sexe === "M" ? "PEPINIERE-G" : "PEPINIERE-F");
 const StepDormitory = ({ data, sexe, onChange, onNext, onPrevious }) => {
   const [dortoirs, setDortoirs] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -28,6 +24,7 @@ const StepDormitory = ({ data, sexe, onChange, onNext, onPrevious }) => {
           }
         );
 
+        console.log("Raw API response:", response.data);
 
         let dortoirsData = [];
         if (Array.isArray(response.data)) {
@@ -40,6 +37,7 @@ const StepDormitory = ({ data, sexe, onChange, onNext, onPrevious }) => {
         } else if (response.data.data && Array.isArray(response.data.data)) {
           dortoirsData = response.data.data;
         } else {
+          console.error("Unexpected API structure:", response.data);
           setApiError(
             "Invalid data format from server. Please contact support."
           );
@@ -50,6 +48,7 @@ const StepDormitory = ({ data, sexe, onChange, onNext, onPrevious }) => {
         setDortoirs(dortoirsData);
         setLoading(false);
       } catch (err) {
+        console.error("Error fetching dormitories:", err);
         setApiError(
           err.response?.data?.message ||
             "Unable to load dormitories. Please try again."
@@ -73,10 +72,12 @@ const StepDormitory = ({ data, sexe, onChange, onNext, onPrevious }) => {
     if (!age || age < 5 || age > 11) return;
     if (!Array.isArray(dortoirs) || dortoirs.length === 0) return;
 
-    const targetCode = codePepiniere(sexe);
+    const targetName = sexe === "M" ? "Pépinière Homme" : "Pépinière Femme";
 
     const target = dortoirs.find(
-      (d) => d.code === targetCode && (d.available || 0) > 0
+      (d) =>
+        d.name?.toLowerCase() === targetName.toLowerCase() &&
+        (d.available || 0) > 0
     );
 
     if (target) {
@@ -87,8 +88,11 @@ const StepDormitory = ({ data, sexe, onChange, onNext, onPrevious }) => {
         matricule: "",
       });
       setError("");
+      console.log("Auto-selected dormitory:", target.name, target.code);
     } else {
-      setError("Aucun dortoir Pépinière n'est disponible pour le moment.");
+      setError(
+        `Aucun dortoir "${targetName}" n'est disponible pour le moment.`
+      );
     }
   }, [data.age, sexe, dortoirs, onChange]);
 
@@ -126,6 +130,7 @@ const StepDormitory = ({ data, sexe, onChange, onNext, onPrevious }) => {
     });
     setError("");
 
+    console.log("Selected dormitory:", dortoir.name, dortoir.code);
   };
 
   const handleSubmit = (e) => {
@@ -238,7 +243,7 @@ const StepDormitory = ({ data, sexe, onChange, onNext, onPrevious }) => {
         </div>
       )}
       <form onSubmit={handleSubmit}>
-        <div className="dormitory-grid">
+        <div className="dormitory-grid" role="radiogroup" aria-label="Dortoirs">
           {Array.isArray(dortoirs) && dortoirs.length > 0 ? (
             dortoirs.map((dortoir) => {
               const available = dortoir.available || 0;
@@ -248,7 +253,10 @@ const StepDormitory = ({ data, sexe, onChange, onNext, onPrevious }) => {
               const occupancyPercent =
                 ((capacity - available) / capacity) * 100;
 
-              const isPepiniere = dortoir.code === codePepiniere(sexe);
+              const targetName =
+                sexe === "M" ? "Pépinière Homme" : "Pépinière Femme";
+              const isPepiniere =
+                dortoir.name?.toLowerCase() === targetName.toLowerCase();
 
               const clickable =
                 !isPepiniereAge || (isPepiniereAge && isPepiniere);
@@ -265,6 +273,23 @@ const StepDormitory = ({ data, sexe, onChange, onNext, onPrevious }) => {
                     isAvailable && clickable && handleDormitorySelect(dortoir)
                   }
                 >
+                  {/* Radio natif masqué visuellement : sélection au clavier (Tab, flèches, Espace) et nom
+                      accessible ; le clic souris reste géré par la carte (P-25) */}
+                  <input
+                    type="radio"
+                    name="dortoir"
+                    className="visually-hidden"
+                    value={dortoir.code}
+                    checked={isSelected}
+                    disabled={!isAvailable || !clickable}
+                    aria-label={`${dortoir.name} : ${
+                      isAvailable
+                        ? `${available} places disponibles sur ${capacity}`
+                        : "indisponible"
+                    }`}
+                    onClick={(e) => e.stopPropagation()}
+                    onChange={() => !isSelected && handleDormitorySelect(dortoir)}
+                  />
                   <div className="dormitory-card-header">
                     <h3 className="dormitory-name">{dortoir.name}</h3>
                     {isSelected && (

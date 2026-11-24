@@ -2,14 +2,14 @@
 // Construction des corps de requête du recensement CO, strictement selon le contrat d'API
 // (dépôt Backend, docs/features/recensement-co.md, section « Public ») : aucun champ supplémentaire.
 
-import { normaliserTelephone, VALEUR_AUCUNE_COMMISSION } from "./validation";
+import { normaliserTelephone, qualitesPourCommission, VALEUR_AUCUNE_COMMISSION } from "./validation";
 
 const texte = (valeur) => (typeof valeur === "string" ? valeur.trim() : "");
 
 export const IDENTIFICATION_VIDE = {
+  ancien_membre: "", // « oui » / « non » : choix du parcours, jamais envoyé à l'API
   nom: "",
   prenoms: "",
-  date_naissance: "",
   telephone: "",
   commission_precedente: "",
 };
@@ -17,7 +17,6 @@ export const IDENTIFICATION_VIDE = {
 export const FICHE_VIDE = {
   nom: "",
   prenoms: "",
-  date_naissance: "",
   sexe: "",
   telephone: "",
   email: "",
@@ -45,7 +44,6 @@ export const libelleOfficiel = (valeur, options = []) => {
 export const construireIdentification = (valeurs, jetonFormulaire, siteWeb = "") => ({
   nom: texte(valeurs.nom),
   prenoms: texte(valeurs.prenoms),
-  date_naissance: texte(valeurs.date_naissance),
   telephone: normaliserTelephone(valeurs.telephone) || texte(valeurs.telephone),
   commission_precedente:
     !valeurs.commission_precedente || valeurs.commission_precedente === VALEUR_AUCUNE_COMMISSION
@@ -61,12 +59,11 @@ export const construireFiche = (valeurs, jetonSession, { supprimerPhoto = false 
     jeton_session: jetonSession,
     nom: texte(valeurs.nom),
     prenoms: texte(valeurs.prenoms),
-    date_naissance: texte(valeurs.date_naissance),
     sexe: valeurs.sexe,
     telephone: normaliserTelephone(valeurs.telephone) || texte(valeurs.telephone),
     email: texte(valeurs.email).toLowerCase(),
     commission: valeurs.commission,
-    qualite: valeurs.qualite,
+    qualite: valeurs.qualite || null, // null : commission sans qualité
     consentement: true,
     supprimer_photo: Boolean(supprimerPhoto),
   };
@@ -92,23 +89,30 @@ export const urlPhotoSure = (url) => (typeof url === "string" && /^https:\/\//i.
 /**
  * Valeurs de l'étape 2 à partir de la réponse d'identification. Fiche retrouvée : toutes ses informations (santé
  * comprise) ; champs `null` (fiches 2025 incomplètes) complétés par la saisie de l'étape 1. Commission et qualité
- * ramenées aux options de la configuration (sinon vides : à choisir).
+ * ramenées aux options de la configuration (sinon vides : à choisir) ; la qualité doit convenir à la commission.
  */
-export const valeursFicheInitiales = (identification, fiche, { commissions = [], qualites = [] } = {}) => {
+export const valeursFicheInitiales = (
+  identification,
+  fiche,
+  { commissions = [], qualites = [], qualitesParCommission = null } = {}
+) => {
   const source = fiche || {};
   const valeur = (champ) => (typeof source[champ] === "string" ? source[champ] : "");
   const valeurs = { ...FICHE_VIDE };
   for (const champ of Object.keys(FICHE_VIDE)) {
     valeurs[champ] = valeur(champ);
   }
-  for (const champ of ["nom", "prenoms", "date_naissance", "telephone"]) {
+  for (const champ of ["nom", "prenoms", "telephone"]) {
     if (!texte(valeurs[champ])) {
       valeurs[champ] = identification[champ] || "";
     }
   }
-  valeurs.date_naissance = valeurs.date_naissance.slice(0, 10);
   valeurs.sexe = ["M", "F"].includes(valeurs.sexe) ? valeurs.sexe : "";
   valeurs.commission = libelleOfficiel(valeurs.commission, commissions);
-  valeurs.qualite = qualites.includes(valeurs.qualite) ? valeurs.qualite : "";
+  valeurs.qualite = qualitesPourCommission(valeurs.commission, qualites, qualitesParCommission).includes(
+    valeurs.qualite
+  )
+    ? valeurs.qualite
+    : "";
   return valeurs;
 };

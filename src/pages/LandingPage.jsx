@@ -40,7 +40,7 @@ const LandingPage = () => {
             </div>
             <div className="logo-text-container">
               <span className="logo-text">AN-NOUR</span>
-              <span className="logo-version">7.0</span>
+              <span className="logo-version">8.0</span>
             </div>
           </div>
 
@@ -162,7 +162,7 @@ const LandingPage = () => {
                   className="footer-logo-image"
                 />
               </div>
-              <h3 className="footer-title">AN-NOUR 7.0</h3>
+              <h3 className="footer-title">AN-NOUR 8.0</h3>
               <p className="footer-description">
                 Pour une spiritualité étincelante...
               </p>
@@ -183,8 +183,8 @@ const LandingPage = () => {
                 <li>📞 05 45 84 41 35</li>
                 <li>📞 01 42 08 05 37</li>
                 <li>📞 07 87 94 49 73</li>
-                <li>📍 Lycée Moderne de Cocody</li>
-                <li>📅 20 - 25 Décembre 2025</li>
+                <li>📍 Bingerville</li>
+                <li>📅 23 - 29 Décembre 2026</li>
               </ul>
             </div>
 
@@ -213,7 +213,7 @@ const LandingPage = () => {
 
           <div className="footer-bottom">
             <p>
-              &copy; AN NOUR 2025 - 7eme edition | (c) 2025 Tous droits réservés
+              &copy; AN NOUR 2026 - 8eme edition | (c) 2026 Tous droits réservés
             </p>
             <span style={{ fontStyle: "italic" }}>
               Pour une spiritualite etincelante...

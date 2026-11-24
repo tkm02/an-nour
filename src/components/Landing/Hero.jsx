@@ -33,8 +33,8 @@ const Hero = () => {
   // ✅ Effet pour le compte à rebours
   useEffect(() => {
     const calculateTimeLeft = () => {
-      // Date cible : 20 décembre 2025 à 14h00 (heure locale Côte d'Ivoire - GMT)
-      const targetDate = new Date('2025-12-20T14:00:00').getTime();
+      // Date cible : mercredi 23 décembre 2026 à 14h00 (heure de Côte d'Ivoire = GMT/UTC)
+      const targetDate = new Date('2026-12-23T14:00:00Z').getTime();
       const now = new Date().getTime();
       const difference = targetDate - now;
 
@@ -192,7 +192,7 @@ const Hero = () => {
               <div className="hero-badge" data-aos="fade-down">
                 <span className="badge-icon">✨</span>
                 <span className="badge-text">
-                  7ème Édition - Excellence en Éducation Islamique
+                  8ème Édition - Excellence en Éducation Islamique
                 </span>
                 <div className="badge-shine"></div>
               </div>
@@ -228,13 +228,13 @@ const Hero = () => {
               {/* Theme Box */}
               <div className="hero-theme-box" data-aos="fade-up" data-aos-delay="250">
                 <div className="theme-header">
-                  <span className="theme-badge">THÈME 2025</span>
+                  <span className="theme-badge">THÈME 2026</span>
                 </div>
                 <h3 className="theme-title">
-                  AEEMCI : Cinquante ans d'engagement citoyen et islamique
+                  Le transfert entre générations à l’épreuve du temps
                 </h3>
                 <p className="theme-subtitle">
-                  Pour une jeunesse responsable et actrice de paix en Côte d'Ivoire
+                  Pérenniser l’héritage de l’AEEMCI
                 </p>
               </div>
 
@@ -291,18 +291,18 @@ const Hero = () => {
               {/* Stats */}
               <div className="hero-stats" data-aos="fade-up" data-aos-delay="500">
                 <div className="stat-item">
-                  <div className="stat-number">6</div>
+                  <div className="stat-number">7</div>
                   <div className="stat-label">Jours intensifs</div>
                 </div>
                 <div className="stat-divider"></div>
                 <div className="stat-item">
-                  <div className="stat-number">6000</div>
+                  <div className="stat-number">7000</div>
                   <div className="stat-label">FCFA par personne</div>
                 </div>
                 <div className="stat-divider"></div>
                 <div className="stat-item">
-                  <div className="stat-number">20-25</div>
-                  <div className="stat-label">Décembre 2025</div>
+                  <div className="stat-number">23-29</div>
+                  <div className="stat-label">Décembre 2026</div>
                 </div>
               </div>
             </div>

@@ -256,3 +256,10 @@ textarea {
     justify-content: space-between;
   }
 }
+
+/* Focus clavier sur les radios masqués visuellement des notes (P-25) */
+.star:focus-within,
+.scale-item:focus-within {
+  outline: 3px solid var(--primary-green);
+  outline-offset: 2px;
+}

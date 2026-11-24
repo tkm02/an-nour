@@ -35,7 +35,6 @@ const CONFIGURATION = {
 const FICHE_TROUVEE = {
   nom: "TEST",
   prenoms: "Awa",
-  date_naissance: "2000-01-15",
   sexe: "F",
   telephone: "0700000000",
   email: "awa.serveur@exemple.ci",
@@ -65,17 +64,23 @@ const http = (status, data, retryAfter = null) => new ErreurApi("http", { status
 const saisir = (libelle, valeur) => fireEvent.change(screen.getByLabelText(libelle), { target: { value: valeur } });
 const cliquer = (nom) => fireEvent.click(screen.getByRole("button", { name: nom }));
 
-const remplirIdentification = (commission = "__aucune__") => {
+const repondreAncien = (reponse) => fireEvent.click(screen.getByRole("radio", { name: reponse }));
+
+/** Parcours « oui » : membre du CO l'an passé, identification pour retrouver la fiche. */
+const remplirIdentification = (commission = "Santé") => {
+  repondreAncien("Oui");
   saisir(/^Nom/, "Test");
   saisir(/^Prénom\(s\)/, "Awa");
-  saisir(/^Date de naissance/, "2000-01-15");
   saisir(/^Téléphone/, "07 00 00 00 00");
-  saisir(/commission lors de l'édition précédente/, commission);
+  saisir(/^Votre commission l'an passé/, commission);
 };
+
+/** Configuration chargée : l'édition apparaît dans le surtitre. */
+const configurationChargee = () => screen.findByText(/Édition de test/);
 
 const afficher = async () => {
   render(<RecensementCoPage delaiMinimalMs={0} />);
-  await screen.findByRole("option", { name: "Nouveau membre / aucune" });
+  await configurationChargee();
 };
 
 const allerAuRecapitulatif = async (reponseIdentification = TROUVEE) => {
@@ -103,6 +108,7 @@ describe("RecensementCoPage — affichage", () => {
     service.chargerConfiguration.mockReturnValue(new Promise((resolve) => (terminer = resolve)));
     render(<RecensementCoPage delaiMinimalMs={0} />);
     expect(screen.getByRole("heading", { name: "Identifiez-vous" })).toBeInTheDocument();
+    repondreAncien("Oui");
     expect(screen.getByLabelText(/^Nom/)).toBeEnabled();
     expect(screen.getByRole("option", { name: "Chargement de la liste…" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Continuer" })).toHaveAttribute("aria-disabled", "true");
@@ -134,8 +140,22 @@ describe("RecensementCoPage — affichage", () => {
     expect(screen.queryByRole("textbox", { name: "Laisser ce champ vide" })).not.toBeInTheDocument();
   });
 
-  it("signale les erreurs sous chaque champ et place le focus sur la première", async () => {
+  it("commence par « membre du CO l'an passé ? » : sans réponse, erreur et focus sur la question", async () => {
     await afficher();
+    expect(screen.getByRole("group", { name: /membre du comité d'organisation l'an passé/ })).toBeInTheDocument();
+    expect(screen.queryByLabelText(/^Nom/)).not.toBeInTheDocument();
+    expect(screen.queryByLabelText(/Date de naissance/)).not.toBeInTheDocument();
+    cliquer("Continuer");
+    const oui = screen.getByRole("radio", { name: "Oui" });
+    expect(oui).toHaveFocus();
+    expect(oui).toHaveAccessibleDescription("Indiquez si vous étiez membre du CO l'an passé.");
+    expect(service.identifierMembre).not.toHaveBeenCalled();
+  });
+
+  it("réponse « oui » : signale les erreurs sous chaque champ et place le focus sur la première", async () => {
+    await afficher();
+    repondreAncien("Oui");
+    expect(screen.queryByRole("option", { name: /Nouveau membre/ })).not.toBeInTheDocument();
     cliquer("Continuer");
     const nom = screen.getByLabelText(/^Nom/);
     expect(nom).toHaveFocus();
@@ -163,7 +183,7 @@ describe("RecensementCoPage — affichage", () => {
     expect(alerte).toHaveTextContent(/Impossible de contacter le serveur/);
     expect(alerte).toHaveFocus();
     cliquer("Réessayer");
-    await screen.findByRole("option", { name: "Nouveau membre / aucune" });
+    await configurationChargee();
   });
 });
 
@@ -179,9 +199,8 @@ describe("RecensementCoPage — parcours", () => {
     expect(service.identifierMembre).toHaveBeenCalledWith({
       nom: "Test",
       prenoms: "Awa",
-      date_naissance: "2000-01-15",
       telephone: "0700000000",
-      commission_precedente: null,
+      commission_precedente: "Santé",
       jeton_formulaire: "jeton-formulaire-1",
       site_web: "",
     });
@@ -190,10 +209,11 @@ describe("RecensementCoPage — parcours", () => {
     expect(screen.getByLabelText(/^Allergies/)).toHaveAccessibleDescription(/arachides, pénicilline/);
     expect(screen.getByLabelText(/^Commission pour cette édition/)).toHaveValue("Santé");
     expect(screen.getByRole("img", { name: /femme voilée/ })).toBeInTheDocument();
+    expect(screen.queryByLabelText(/Date de naissance/)).not.toBeInTheDocument();
 
     // Rien de ce que le serveur a renvoyé n'est écrit dans le navigateur
     const sauvegarde = window.sessionStorage.getItem(CLE_PROGRESSION) || "";
-    expect(sauvegarde).not.toMatch(/awa\.serveur|Arachide|2000-01-15|0700000000/);
+    expect(sauvegarde).not.toMatch(/awa\.serveur|Arachide|0700000000/);
     expect(window.localStorage.getItem(CLE_PROGRESSION)).toBeNull();
 
     cliquer("Continuer");
@@ -233,7 +253,12 @@ describe("RecensementCoPage — parcours", () => {
     saisir(/^Allergies/, "Pollen (fictif)");
     const sauvegarde = JSON.parse(window.sessionStorage.getItem(CLE_PROGRESSION));
     expect(sauvegarde.fiche).toEqual({ email: "awa.saisie@exemple.ci" });
-    expect(sauvegarde.identification).toEqual({ nom: "Test", prenoms: "Awa", commission_precedente: "__aucune__" });
+    expect(sauvegarde.identification).toEqual({
+      ancien_membre: "oui",
+      nom: "Test",
+      prenoms: "Awa",
+      commission_precedente: "Santé",
+    });
   });
 
   it("supprime l'ancienne sauvegarde localStorage au chargement", async () => {
@@ -242,17 +267,77 @@ describe("RecensementCoPage — parcours", () => {
     expect(window.localStorage.getItem(CLE_PROGRESSION)).toBeNull();
   });
 
-  it("nouveau membre : message neutre et fiche à compléter", async () => {
+  it("réponse « non » : fiche vide, identification au passage au récapitulatif, puis envoi", async () => {
     service.identifierMembre.mockResolvedValue(NOUVEAU);
+    service.soumettreFiche.mockResolvedValue(ENREGISTREE);
     await afficher();
-    remplirIdentification();
+    repondreAncien("Non");
     cliquer("Continuer");
     await screen.findByText("Complétez votre fiche, elle sera vérifiée par l'administration.");
-    expect(screen.getByLabelText(/^Nom/)).toHaveValue("Test");
+    expect(service.identifierMembre).not.toHaveBeenCalled();
+    expect(screen.getByLabelText(/^Nom/)).toHaveValue("");
     expect(screen.getByLabelText(/^Adresse email/)).toHaveValue("");
+    expect(screen.queryByLabelText(/Date de naissance/)).not.toBeInTheDocument();
 
     cliquer("Continuer");
-    expect(screen.getByRole("radio", { name: "Masculin" })).toHaveFocus();
+    expect(screen.getByLabelText(/^Nom/)).toHaveFocus();
+    expect(service.identifierMembre).not.toHaveBeenCalled();
+
+    saisir(/^Nom/, "Nouveau");
+    saisir(/^Prénom\(s\)/, "Fictif");
+    fireEvent.click(screen.getByRole("radio", { name: "Masculin" }));
+    saisir(/^Téléphone/, "05 00 00 00 00");
+    saisir(/^Adresse email/, "nouveau.fictif@exemple.ci");
+    saisir(/^Commission pour cette édition/, "Logistique");
+    saisir(/^Qualité/, "membre");
+    cliquer("Continuer");
+    await screen.findByRole("heading", { name: "Récapitulatif et envoi" });
+    expect(service.identifierMembre).toHaveBeenCalledWith({
+      nom: "Nouveau",
+      prenoms: "Fictif",
+      telephone: "0500000000",
+      commission_precedente: null,
+      jeton_formulaire: "jeton-formulaire-1",
+      site_web: "",
+    });
+
+    // Retour à la fiche sans changer l'identité : pas de nouvelle identification
+    cliquer("Modifier");
+    await screen.findByRole("heading", { name: "Complétez votre fiche" });
+    cliquer("Continuer");
+    await screen.findByRole("heading", { name: "Récapitulatif et envoi" });
+    expect(service.identifierMembre).toHaveBeenCalledTimes(1);
+
+    fireEvent.click(screen.getByRole("checkbox"));
+    cliquer("Envoyer ma fiche");
+    await screen.findByText("CO-TEST26-ABC123");
+    expect(service.soumettreFiche).toHaveBeenCalledWith(
+      expect.objectContaining({ jeton_session: "jeton-session-2", nom: "Nouveau", commission: "Logistique" })
+    );
+    expect(service.soumettreFiche.mock.calls[0][0]).not.toHaveProperty("date_naissance");
+  });
+
+  it("réponse « non » mais fiche de cette édition déjà validée : lecture seule, rien n'est envoyé", async () => {
+    service.identifierMembre.mockResolvedValue({ ...NOUVEAU, resultat: "trouve", deja_soumise: true, verrouillee: true });
+    await afficher();
+    repondreAncien("Non");
+    cliquer("Continuer");
+    await screen.findByText("Complétez votre fiche, elle sera vérifiée par l'administration.");
+    saisir(/^Nom/, "Nouveau");
+    saisir(/^Prénom\(s\)/, "Fictif");
+    fireEvent.click(screen.getByRole("radio", { name: "Masculin" }));
+    saisir(/^Téléphone/, "05 00 00 00 00");
+    saisir(/^Adresse email/, "nouveau.fictif@exemple.ci");
+    saisir(/^Commission pour cette édition/, "Logistique");
+    saisir(/^Qualité/, "membre");
+    cliquer("Continuer");
+    await screen.findByText(/Fiche déjà validée : contactez l'administration/);
+    expect(screen.getByRole("heading", { name: "Vos modifications (non enregistrées)" })).toBeInTheDocument();
+    // l'étape ne change pas : le focus est placé sur l'alerte (lue par les lecteurs d'écran)
+    const alerte = screen.getByRole("status");
+    expect(alerte).toHaveTextContent(/Fiche déjà validée/);
+    await waitFor(() => expect(alerte).toHaveFocus());
+    expect(service.soumettreFiche).not.toHaveBeenCalled();
   });
 
   it("ancien membre non retrouvé : invitation à vérifier l'identification", async () => {
@@ -260,7 +345,7 @@ describe("RecensementCoPage — parcours", () => {
     await afficher();
     remplirIdentification("Santé");
     cliquer("Continuer");
-    expect(await screen.findByText("Nous n'avons pas retrouvé votre fiche de l'an dernier.")).toBeInTheDocument();
+    expect(await screen.findByText("Nous n'avons pas retrouvé votre fiche de l'an passé.")).toBeInTheDocument();
   });
 
   it("fiche verrouillée : lecture seule et invitation à contacter l'administration", async () => {
@@ -301,6 +386,8 @@ describe("RecensementCoPage — parcours", () => {
 
     cliquer("Remplir la fiche d'une autre personne");
     await screen.findByRole("heading", { name: "Identifiez-vous" });
+    expect(screen.getByRole("radio", { name: "Oui" })).not.toBeChecked();
+    repondreAncien("Oui");
     expect(screen.getByLabelText(/^Nom/)).toHaveValue("");
     await waitFor(() => expect(service.chargerConfiguration).toHaveBeenCalledTimes(2));
     delete navigator.clipboard;
@@ -435,7 +522,7 @@ describe("RecensementCoPage — erreurs", () => {
     const alerte = screen.getByRole("alert");
     expect(alerte).toHaveTextContent("Pour votre sécurité, votre session a expiré. Vos réponses sont conservées");
     expect(alerte).toHaveFocus();
-    expect(screen.getByLabelText(/^Date de naissance/)).toHaveValue("2000-01-15");
+    expect(screen.getByLabelText(/^Nom/)).toHaveValue("Test");
 
     cliquer("Continuer");
     await screen.findByText("Nous avons retrouvé votre fiche");
@@ -504,21 +591,220 @@ describe("RecensementCoPage — photo", () => {
 });
 
 describe("RecensementCoPage — sauvegarde de l'onglet", () => {
-  it("reprend la saisie de l'onglet (sans date ni téléphone) et permet de l'effacer", async () => {
+  it("reprend la saisie de l'onglet (sans téléphone) et permet de l'effacer", async () => {
     window.sessionStorage.setItem(
       CLE_PROGRESSION,
       JSON.stringify({
         version: 1,
         enregistreLe: Date.now(),
-        identification: { nom: "Test", prenoms: "Awa", commission_precedente: "" },
+        identification: { ancien_membre: "oui", nom: "Test", prenoms: "Awa", commission_precedente: "" },
         fiche: null,
       })
     );
     await afficher();
     expect(screen.getByLabelText(/^Nom/)).toHaveValue("Test");
-    expect(screen.getByLabelText(/^Date de naissance/)).toHaveValue("");
+    expect(screen.getByLabelText(/^Téléphone/)).toHaveValue("");
     cliquer("Effacer mes réponses");
-    expect(screen.getByLabelText(/^Nom/)).toHaveValue("");
+    expect(screen.queryByLabelText(/^Nom/)).not.toBeInTheDocument();
+    expect(screen.getByRole("radio", { name: "Oui" })).not.toBeChecked();
     expect(window.sessionStorage.getItem(CLE_PROGRESSION)).toBeNull();
+  });
+});
+
+describe("RecensementCoPage — corrections de la revue du 2026-11-23", () => {
+  /** Parcours « non » : fiche remplie avec une identité fictive. */
+  const remplirFicheNouveau = () => {
+    saisir(/^Nom/, "Nouveau");
+    saisir(/^Prénom\(s\)/, "Fictif");
+    fireEvent.click(screen.getByRole("radio", { name: "Masculin" }));
+    saisir(/^Téléphone/, "05 00 00 00 00");
+    saisir(/^Adresse email/, "nouveau.fictif@exemple.ci");
+    saisir(/^Commission pour cette édition/, "Logistique");
+    saisir(/^Qualité/, "membre");
+  };
+
+  const ouvrirFicheNouveau = async () => {
+    repondreAncien("Non");
+    cliquer("Continuer");
+    await screen.findByRole("heading", { name: "Complétez votre fiche" });
+  };
+
+  it("parcours « non » : le champ piège rempli à l'étape 1 est transmis à l'identification", async () => {
+    service.identifierMembre.mockResolvedValue(NOUVEAU);
+    await afficher();
+    fireEvent.change(screen.getByLabelText("Laisser ce champ vide"), { target: { value: "robot" } });
+    await ouvrirFicheNouveau();
+    remplirFicheNouveau();
+    cliquer("Continuer");
+    await waitFor(() =>
+      expect(service.identifierMembre).toHaveBeenCalledWith(expect.objectContaining({ site_web: "robot" }))
+    );
+  });
+
+  it("passer de « Oui » à « Non » après une erreur du serveur ne bloque plus « Continuer »", async () => {
+    service.identifierMembre.mockRejectedValueOnce(http(422, { detail: "Commission inconnue" }));
+    await afficher();
+    remplirIdentification();
+    cliquer("Continuer");
+    await screen.findByRole("alert");
+    repondreAncien("Non");
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+    cliquer("Continuer");
+    await screen.findByRole("heading", { name: "Complétez votre fiche" });
+  });
+
+  it("« Retour » est inactif pendant la vérification du parcours « non »", async () => {
+    let repondre;
+    service.identifierMembre.mockReturnValue(new Promise((resolve) => (repondre = resolve)));
+    await afficher();
+    await ouvrirFicheNouveau();
+    remplirFicheNouveau();
+    cliquer("Continuer");
+    await screen.findByRole("button", { name: "Vérification…" });
+    expect(screen.getByRole("button", { name: "Retour" })).toHaveAttribute("aria-disabled", "true");
+    cliquer("Retour");
+    expect(screen.getByRole("heading", { name: "Complétez votre fiche" })).toBeInTheDocument();
+    await act(async () => repondre(NOUVEAU));
+    await screen.findByRole("heading", { name: "Récapitulatif et envoi" });
+  });
+
+  it("parcours « non » avec une fiche déjà envoyée cette année : prévient que l'envoi la met à jour", async () => {
+    service.identifierMembre.mockResolvedValue({ ...NOUVEAU, resultat: "trouve", deja_soumise: true });
+    await afficher();
+    await ouvrirFicheNouveau();
+    remplirFicheNouveau();
+    cliquer("Continuer");
+    await screen.findByRole("heading", { name: "Récapitulatif et envoi" });
+    expect(
+      screen.getByText("Vous avez déjà envoyé votre fiche pour cette édition : ce nouvel envoi la mettra à jour.")
+    ).toBeInTheDocument();
+  });
+
+  it("santé non réaffichée par le serveur : explication à l'étape 2 et « inchangées » au récapitulatif", async () => {
+    service.identifierMembre.mockResolvedValue({
+      ...TROUVEE,
+      fiche: { ...FICHE_TROUVEE, allergies: null },
+      sante_masquee: true,
+    });
+    await afficher();
+    remplirIdentification();
+    cliquer("Continuer");
+    await screen.findByText(/elles ne sont pas réaffichées ici/);
+    expect(screen.getByLabelText(/^Allergies/)).toHaveValue("");
+    cliquer("Continuer");
+    await screen.findByRole("heading", { name: "Récapitulatif et envoi" });
+    expect(screen.getAllByText("Inchangées (non réaffichées)")).toHaveLength(2);
+  });
+
+  it("« Non » puis « Oui » : l'identité saisie dans la fiche est reprise, ainsi que la saisie", async () => {
+    service.identifierMembre.mockResolvedValue(NOUVEAU);
+    await afficher();
+    await ouvrirFicheNouveau();
+    remplirFicheNouveau();
+    cliquer("Retour");
+    await screen.findByRole("heading", { name: "Identifiez-vous" });
+    repondreAncien("Oui");
+    expect(screen.getByLabelText(/^Nom/)).toHaveValue("Nouveau");
+    expect(screen.getByLabelText(/^Prénom\(s\)/)).toHaveValue("Fictif");
+    expect(screen.getByLabelText(/^Téléphone/).value.replace(/\D/g, "")).toBe("0500000000");
+    saisir(/^Votre commission l'an passé/, "Santé");
+    cliquer("Continuer");
+    await screen.findByRole("heading", { name: "Vérifiez et complétez votre fiche" });
+    expect(screen.getByLabelText(/^Adresse email/)).toHaveValue("nouveau.fictif@exemple.ci");
+  });
+
+  it("« Oui » puis « Non » : nom, prénoms et téléphone déjà saisis sont repris dans la fiche", async () => {
+    await afficher();
+    remplirIdentification();
+    repondreAncien("Non");
+    cliquer("Continuer");
+    await screen.findByRole("heading", { name: "Complétez votre fiche" });
+    expect(screen.getByLabelText(/^Nom/)).toHaveValue("Test");
+    expect(screen.getByLabelText(/^Prénom\(s\)/)).toHaveValue("Awa");
+    expect(screen.getByLabelText(/^Téléphone/).value.replace(/\D/g, "")).toBe("0700000000");
+    expect(service.identifierMembre).not.toHaveBeenCalled();
+  });
+
+  it("une ancienne sauvegarde « Nouveau membre / aucune » est reprise comme la réponse « Non »", async () => {
+    window.sessionStorage.setItem(
+      CLE_PROGRESSION,
+      JSON.stringify({
+        version: 1,
+        enregistreLe: Date.now(),
+        identification: { nom: "Test", prenoms: "Awa", commission_precedente: "__aucune__" },
+        fiche: null,
+      })
+    );
+    await afficher();
+    expect(screen.getByRole("radio", { name: "Non" })).toBeChecked();
+  });
+});
+
+describe("RecensementCoPage — qualités selon la commission (2026-11-24)", () => {
+  const CONFIGURATION_QUALITES = {
+    ...CONFIGURATION,
+    commissions: ["Comité Managérial", "Santé", "Superviseur"],
+    qualites: [
+      ...CONFIGURATION.qualites,
+      { code: "manager_general", libelle: "Manager Général" },
+      { code: "manager_general_adjoint", libelle: "Manager Général Adjoint" },
+    ],
+    qualites_par_commission: {
+      "Comité Managérial": ["manager_general", "manager_general_adjoint"],
+      Santé: ["membre", "responsable", "responsable_adjoint"],
+      Superviseur: [],
+    },
+  };
+
+  const ouvrirFiche = async () => {
+    service.chargerConfiguration.mockResolvedValue(CONFIGURATION_QUALITES);
+    service.identifierMembre.mockResolvedValue(NOUVEAU);
+    await afficher();
+    repondreAncien("Non");
+    cliquer("Continuer");
+    await screen.findByRole("heading", { name: "Complétez votre fiche" });
+    saisir(/^Nom/, "Nouveau");
+    saisir(/^Prénom\(s\)/, "Fictif");
+    fireEvent.click(screen.getByRole("radio", { name: "Masculin" }));
+    saisir(/^Téléphone/, "05 00 00 00 00");
+    saisir(/^Adresse email/, "nouveau.fictif@exemple.ci");
+  };
+
+  const optionsQualite = () =>
+    within(screen.getByLabelText(/^Qualité/))
+      .getAllByRole("option")
+      .map((option) => option.textContent);
+
+  it("affiche l'édition « An-Nour 8.0 » dans le surtitre", async () => {
+    await afficher();
+    expect(screen.getByText("Séminaire An-Nour 8.0 — Édition de test")).toBeInTheDocument();
+  });
+
+  it("Comité Managérial : seules les qualités Manager Général et Adjoint sont proposées", async () => {
+    await ouvrirFiche();
+    expect(screen.getByLabelText(/^Qualité/)).toBeDisabled(); // commission pas encore choisie
+    saisir(/^Commission pour cette édition/, "Comité Managérial");
+    expect(optionsQualite()).toEqual(["Choisissez…", "Manager Général", "Manager Général Adjoint"]);
+    saisir(/^Qualité/, "manager_general");
+    // Changement vers une commission où la qualité n'existe pas : elle est à choisir de nouveau
+    saisir(/^Commission pour cette édition/, "Santé");
+    expect(screen.getByLabelText(/^Qualité/)).toHaveValue("");
+    expect(optionsQualite()).toEqual(["Choisissez…", "Membre", "Responsable", "Responsable adjoint"]);
+  });
+
+  it("commission sans qualité : champ masqué, aucune qualité au récapitulatif ni à l'envoi", async () => {
+    service.soumettreFiche.mockResolvedValue(ENREGISTREE);
+    await ouvrirFiche();
+    saisir(/^Commission pour cette édition/, "Superviseur");
+    expect(screen.queryByLabelText(/^Qualité/)).not.toBeInTheDocument();
+    cliquer("Continuer");
+    await screen.findByRole("heading", { name: "Récapitulatif et envoi" });
+    expect(screen.queryByText("Qualité")).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole("checkbox"));
+    cliquer("Envoyer ma fiche");
+    await waitFor(() => expect(service.soumettreFiche).toHaveBeenCalled());
+    expect(service.soumettreFiche.mock.calls[0][0]).toEqual(
+      expect.objectContaining({ commission: "Superviseur", qualite: null })
+    );
   });
 });

@@ -12,7 +12,6 @@ import { VALEUR_AUCUNE_COMMISSION } from "./validation";
 const IDENTIFICATION = {
   nom: "  Test ",
   prenoms: "Awa  Fictive",
-  date_naissance: "2000-01-15",
   telephone: "+225 07 00 00 00 00",
   commission_precedente: "Santé",
 };
@@ -22,7 +21,6 @@ describe("construireIdentification", () => {
     expect(construireIdentification(IDENTIFICATION, "jeton-formulaire-fictif")).toEqual({
       nom: "Test",
       prenoms: "Awa  Fictive",
-      date_naissance: "2000-01-15",
       telephone: "0700000000",
       commission_precedente: "Santé",
       jeton_formulaire: "jeton-formulaire-fictif",
@@ -30,7 +28,18 @@ describe("construireIdentification", () => {
     });
   });
 
-  it("envoie null pour « Nouveau membre / aucune »", () => {
+  it("n'envoie jamais la réponse « ancien membre » (choix du parcours, hors contrat)", () => {
+    const corps = construireIdentification({ ...IDENTIFICATION, ancien_membre: "oui" }, "j");
+    expect(corps).not.toHaveProperty("ancien_membre");
+    expect(corps).not.toHaveProperty("date_naissance");
+  });
+
+  it("parcours « non » : commission précédente vide envoyée comme null", () => {
+    expect(construireIdentification({ ...IDENTIFICATION, commission_precedente: "" }, "j").commission_precedente)
+      .toBeNull();
+  });
+
+  it("envoie null pour l'ancienne option « Nouveau membre / aucune »", () => {
     const corps = construireIdentification(
       { ...IDENTIFICATION, commission_precedente: VALEUR_AUCUNE_COMMISSION },
       "j"
@@ -48,7 +57,6 @@ describe("construireFiche", () => {
   const fiche = {
     nom: "Test",
     prenoms: "Awa",
-    date_naissance: "2000-01-15",
     sexe: "F",
     telephone: "07 00 00 00 00",
     email: " Awa.Test@Exemple.CI ",
@@ -63,7 +71,6 @@ describe("construireFiche", () => {
       jeton_session: "jeton-session-fictif",
       nom: "Test",
       prenoms: "Awa",
-      date_naissance: "2000-01-15",
       sexe: "F",
       telephone: "0700000000",
       email: "awa.test@exemple.ci",
@@ -73,6 +80,10 @@ describe("construireFiche", () => {
       consentement: true,
       supprimer_photo: false,
     });
+  });
+
+  it("envoie une qualité null pour une commission sans qualité", () => {
+    expect(construireFiche({ ...fiche, commission: "Superviseur", qualite: "" }, "j").qualite).toBeNull();
   });
 
   it("demande la suppression de la photo existante si elle a été retirée", () => {
@@ -114,7 +125,6 @@ describe("valeursFicheInitiales", () => {
     expect(valeursFicheInitiales(identification, null, options)).toEqual({
       nom: "Test",
       prenoms: "Awa",
-      date_naissance: "2000-01-15",
       sexe: "",
       telephone: "0700000000",
       email: "",
@@ -129,7 +139,6 @@ describe("valeursFicheInitiales", () => {
     const fiche = {
       nom: "TEST",
       prenoms: null,
-      date_naissance: "2000-01-15",
       sexe: "F",
       telephone: "0500000000",
       email: "awa.test@exemple.ci",
@@ -142,7 +151,6 @@ describe("valeursFicheInitiales", () => {
     expect(valeursFicheInitiales(identification, fiche, options)).toEqual({
       nom: "TEST",
       prenoms: "Awa",
-      date_naissance: "2000-01-15",
       sexe: "F",
       telephone: "0500000000",
       email: "awa.test@exemple.ci",
@@ -159,5 +167,19 @@ describe("valeursFicheInitiales", () => {
     expect(valeurs.commission).toBe("");
     expect(valeurs.qualite).toBe("");
     expect(valeurs.sexe).toBe("");
+  });
+
+  it("vide une qualité qui ne convient pas à la commission", () => {
+    const avecTable = {
+      commissions: ["Santé", "Comité Managérial", "Superviseur"],
+      qualites: ["membre", "manager_general"],
+      qualitesParCommission: { Santé: ["membre"], "Comité Managérial": ["manager_general"], Superviseur: [] },
+    };
+    const initiales = (commission, qualite) =>
+      valeursFicheInitiales(identification, { commission, qualite }, avecTable).qualite;
+    expect(initiales("Comité Managérial", "membre")).toBe("");
+    expect(initiales("Comité Managérial", "manager_general")).toBe("manager_general");
+    expect(initiales("Superviseur", "membre")).toBe("");
+    expect(initiales("Santé", "membre")).toBe("membre");
   });
 });

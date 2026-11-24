@@ -1,21 +1,32 @@
 import React, { useState } from "react";
 import { ApercuPhoto } from "./PhotoField";
-import { formaterDate, formaterTelephone } from "../../utils/recensementCo/validation";
+import { commissionSansQualite, formaterTelephone } from "../../utils/recensementCo/validation";
 
 const NON_RENSEIGNE = "Non renseigné";
 
-const valeurOuVide = (valeur) => (typeof valeur === "string" && valeur.trim() ? valeur.trim() : NON_RENSEIGNE);
+const SANTE_CONSERVEE = "Inchangées (non réaffichées)";
+
+const valeurOuVide = (valeur, vide = NON_RENSEIGNE) =>
+  typeof valeur === "string" && valeur.trim() ? valeur.trim() : vide;
 
 /** Fiche en lecture seule (récapitulatif avant envoi, ou fiche verrouillée). */
-export const RecapitulatifFiche = ({ valeurs, qualites, photo }) => {
+export const RecapitulatifFiche = ({ valeurs, qualites, qualitesParCommission = null, photo, santeMasquee = false }) => {
+  const videSante = santeMasquee ? SANTE_CONSERVEE : NON_RENSEIGNE;
   const qualite = qualites.find((q) => q.code === valeurs.qualite);
+  // Commission sans qualité (Secrétaire Régional, Superviseur…) : pas de ligne « Qualité »
+  const sansQualite =
+    !qualite &&
+    commissionSansQualite(
+      valeurs.commission,
+      qualites.map((q) => q.code),
+      qualitesParCommission
+    );
   const lignes = [
     {
       titre: "Identité",
       elements: [
         ["Nom", valeurOuVide(valeurs.nom)],
         ["Prénom(s)", valeurOuVide(valeurs.prenoms)],
-        ["Date de naissance", valeurs.date_naissance ? formaterDate(valeurs.date_naissance) : NON_RENSEIGNE],
         ["Sexe", valeurs.sexe === "M" ? "Masculin" : valeurs.sexe === "F" ? "Féminin" : NON_RENSEIGNE],
       ],
     },
@@ -30,14 +41,14 @@ export const RecapitulatifFiche = ({ valeurs, qualites, photo }) => {
       titre: "Commission et qualité",
       elements: [
         ["Commission", valeurOuVide(valeurs.commission)],
-        ["Qualité", qualite ? qualite.libelle : NON_RENSEIGNE],
+        ...(sansQualite ? [] : [["Qualité", qualite ? qualite.libelle : NON_RENSEIGNE]]),
       ],
     },
     {
       titre: "Santé",
       elements: [
-        ["Allergies", valeurOuVide(valeurs.allergies)],
-        ["Antécédents médicaux", valeurOuVide(valeurs.antecedents_medicaux)],
+        ["Allergies", valeurOuVide(valeurs.allergies, videSante)],
+        ["Antécédents médicaux", valeurOuVide(valeurs.antecedents_medicaux, videSante)],
       ],
     },
   ];
@@ -98,12 +109,15 @@ const InformationDonnees = ({ version }) => (
 const StepRecapitulatif = ({
   valeurs,
   qualites,
+  qualitesParCommission = null,
   photo,
   onModifier,
   onEnvoyer,
   enCours,
   erreur,
   consentementVersion,
+  dejaSoumise = false,
+  santeMasquee = false,
 }) => {
   const [consentement, setConsentement] = useState(false);
   const [erreurConsentement, setErreurConsentement] = useState("");
@@ -123,7 +137,18 @@ const StepRecapitulatif = ({
   return (
     <form className="rco-formulaire" onSubmit={soumettre} noValidate>
       <p className="rco-intro">Relisez votre fiche avant de l'envoyer.</p>
-      <RecapitulatifFiche valeurs={valeurs} qualites={qualites} photo={photo} />
+      {dejaSoumise && (
+        <div className="rco-alerte rco-alerte-info">
+          <p>Vous avez déjà envoyé votre fiche pour cette édition : ce nouvel envoi la mettra à jour.</p>
+        </div>
+      )}
+      <RecapitulatifFiche
+        valeurs={valeurs}
+        qualites={qualites}
+        qualitesParCommission={qualitesParCommission}
+        photo={photo}
+        santeMasquee={santeMasquee}
+      />
 
       <div className={`rco-consentement${erreurConsentement ? " rco-champ-erreur" : ""}`}>
         <label className="rco-option rco-option-consentement" htmlFor="consentement">

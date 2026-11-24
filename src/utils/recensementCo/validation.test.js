@@ -1,18 +1,17 @@
 import {
-  bornesDateNaissance,
   calculerAge,
-  formaterDate,
+  commissionSansQualite,
   formaterTelephone,
   normaliserTelephone,
   premierChampEnErreur,
+  qualitesPourCommission,
   CHAMPS_FICHE,
-  validerDateNaissance,
+  CHAMPS_IDENTIFICATION,
   validerEmail,
   validerFiche,
   validerIdentification,
   validerNom,
   validerTelephone,
-  VALEUR_AUCUNE_COMMISSION,
 } from "./validation";
 
 const AUJOURDHUI = new Date(2026, 10, 21); // 21/11/2026
@@ -48,35 +47,18 @@ describe("formaterTelephone", () => {
   });
 });
 
-describe("dates", () => {
+describe("calculerAge (réinscription des séminaristes)", () => {
   it("calcule l'âge en tenant compte de l'anniversaire", () => {
     expect(calculerAge("2000-11-21", AUJOURDHUI)).toBe(26);
     expect(calculerAge("2000-11-22", AUJOURDHUI)).toBe(25);
     expect(calculerAge("2000-02-30", AUJOURDHUI)).toBeNull();
     expect(calculerAge("21/11/2000", AUJOURDHUI)).toBeNull();
   });
+});
 
-  it("accepte un âge de 10 à 100 ans (règle de l'API)", () => {
-    expect(validerDateNaissance("2016-11-21", AUJOURDHUI)).toBe("");
-    expect(validerDateNaissance("1926-11-21", AUJOURDHUI)).toBe("");
-    expect(validerDateNaissance("2016-11-22", AUJOURDHUI)).toMatch(/entre 10 et 100 ans/);
-    expect(validerDateNaissance("1925-11-21", AUJOURDHUI)).toMatch(/entre 10 et 100 ans/);
-    expect(validerDateNaissance("", AUJOURDHUI)).toMatch(/obligatoire/);
-    expect(validerDateNaissance("2000-13-01", AUJOURDHUI)).toMatch(/invalide/);
-  });
-
-  it("fournit des bornes cohérentes avec la validation", () => {
-    const { min, max } = bornesDateNaissance(AUJOURDHUI);
-    expect(max).toBe("2016-11-21");
-    expect(min).toBe("1925-11-22");
-    expect(validerDateNaissance(min, AUJOURDHUI)).toBe("");
-    expect(validerDateNaissance(max, AUJOURDHUI)).toBe("");
-  });
-
-  it("formate une date pour l'affichage", () => {
-    expect(formaterDate("1998-03-07")).toBe("07/03/1998");
-    expect(formaterDate("")).toBe("");
-  });
+it("le formulaire CO ne demande plus la date de naissance", () => {
+  expect(CHAMPS_IDENTIFICATION).not.toContain("date_naissance");
+  expect(CHAMPS_FICHE).not.toContain("date_naissance");
 });
 
 describe("validateurs de champ", () => {
@@ -103,29 +85,39 @@ describe("validateurs de champ", () => {
 
 describe("validerIdentification", () => {
   const valides = {
+    ancien_membre: "oui",
     nom: "Test",
     prenoms: "Awa Fictive",
-    date_naissance: "2000-01-15",
     telephone: "0700000000",
     commission_precedente: "Santé",
   };
 
-  it("accepte une identification complète", () => {
-    expect(validerIdentification(valides, ["Santé", "Logistique"], AUJOURDHUI)).toEqual({});
+  it("exige d'abord la réponse à « membre du CO l'an passé ? »", () => {
+    expect(validerIdentification({ ...valides, ancien_membre: "" }, ["Santé"])).toEqual({
+      ancien_membre: "Indiquez si vous étiez membre du CO l'an passé.",
+    });
   });
 
-  it("accepte « Nouveau membre / aucune »", () => {
-    const valeurs = { ...valides, commission_precedente: VALEUR_AUCUNE_COMMISSION };
-    expect(validerIdentification(valeurs, ["Santé"], AUJOURDHUI)).toEqual({});
+  it("réponse « non » : aucun autre champ exigé", () => {
+    expect(validerIdentification({ ancien_membre: "non", nom: "", commission_precedente: "" }, ["Santé"])).toEqual({});
   });
 
-  it("signale chaque champ manquant et une commission hors liste", () => {
+  it("réponse « oui » : accepte une identification complète", () => {
+    expect(validerIdentification(valides, ["Santé", "Logistique"])).toEqual({});
+  });
+
+  it("réponse « oui » : la commission de l'an passé est obligatoire (plus d'option « aucune »)", () => {
+    expect(validerIdentification({ ...valides, commission_precedente: "__aucune__" }, ["Santé"])).toEqual({
+      commission_precedente: "Choisissez votre commission de l'an passé.",
+    });
+  });
+
+  it("réponse « oui » : signale chaque champ manquant et une commission hors liste", () => {
     const erreurs = validerIdentification(
-      { nom: "", prenoms: "", date_naissance: "", telephone: "", commission_precedente: "Inconnue" },
-      ["Santé"],
-      AUJOURDHUI
+      { ancien_membre: "oui", nom: "", prenoms: "", telephone: "", commission_precedente: "Inconnue" },
+      ["Santé"]
     );
-    expect(Object.keys(erreurs)).toEqual(["nom", "prenoms", "date_naissance", "telephone", "commission_precedente"]);
+    expect(Object.keys(erreurs)).toEqual(["nom", "prenoms", "telephone", "commission_precedente"]);
   });
 });
 
@@ -134,7 +126,6 @@ describe("validerFiche", () => {
   const valides = {
     nom: "Test",
     prenoms: "Awa Fictive",
-    date_naissance: "2000-01-15",
     sexe: "F",
     telephone: "07 00 00 00 00",
     email: "awa.test@exemple.ci",
@@ -161,5 +152,47 @@ describe("validerFiche", () => {
   it("désigne le premier champ en erreur dans l'ordre d'affichage", () => {
     expect(premierChampEnErreur({ qualite: "x", email: "y" }, CHAMPS_FICHE)).toBe("email");
     expect(premierChampEnErreur({}, CHAMPS_FICHE)).toBeNull();
+  });
+
+  it("n'exige aucune qualité quand la liste proposée est vide (commission sans qualité)", () => {
+    const fiche = { ...valides, commission: "Superviseur", qualite: "" };
+    const erreurs = validerFiche(fiche, { commissions: ["Superviseur"], qualites: [] }, AUJOURDHUI);
+    expect(erreurs).toEqual({});
+  });
+
+  it("refuse une qualité non proposée pour la commission", () => {
+    const options = { commissions: ["Comité Managérial"], qualites: ["manager_general", "manager_general_adjoint"] };
+    const erreurs = validerFiche({ ...valides, commission: "Comité Managérial", qualite: "membre" }, options);
+    expect(erreurs).toEqual({ qualite: "Choisissez votre qualité." });
+  });
+});
+
+describe("qualitesPourCommission / commissionSansQualite", () => {
+  const codes = ["membre", "responsable", "responsable_adjoint", "manager_general", "manager_general_adjoint"];
+  const table = {
+    "Comité Managérial": ["manager_general", "manager_general_adjoint"],
+    Santé: ["membre", "responsable", "responsable_adjoint"],
+    Superviseur: [],
+  };
+
+  it("donne les qualités de la commission choisie", () => {
+    expect(qualitesPourCommission("Comité Managérial", codes, table)).toEqual(["manager_general", "manager_general_adjoint"]);
+    expect(qualitesPourCommission("Santé", codes, table)).toEqual(["membre", "responsable", "responsable_adjoint"]);
+    expect(qualitesPourCommission("Superviseur", codes, table)).toEqual([]);
+  });
+
+  it("aucune qualité tant que la commission n'est pas choisie", () => {
+    expect(qualitesPourCommission("", codes, table)).toEqual([]);
+    expect(commissionSansQualite("", codes, table)).toBe(false);
+  });
+
+  it("configuration sans table (API antérieure) ou commission absente : toutes les qualités", () => {
+    expect(qualitesPourCommission("Santé", codes, null)).toEqual(codes);
+    expect(qualitesPourCommission("Logistique", codes, table)).toEqual(codes);
+  });
+
+  it("repère les commissions sans qualité", () => {
+    expect(commissionSansQualite("Superviseur", codes, table)).toBe(true);
+    expect(commissionSansQualite("Comité Managérial", codes, table)).toBe(false);
   });
 });
