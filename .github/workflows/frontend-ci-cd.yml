@@ -117,6 +117,8 @@ jobs:
         # Action tierce épinglée sur le commit du tag v25 (un tag peut être déplacé)
         uses: amondnet/vercel-action@16e87c0a08142b0d0d33b76aeaf20823c381b9b9 # v25
         with:
+          # CLI figée : l'action utilise sinon la 25.1.0, refusée par Vercel (version 47.2.2 ou plus exigée)
+          vercel-version: '67.0.0'
           vercel-token: ${{ secrets.VERCEL_TOKEN }}
           vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
           vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
