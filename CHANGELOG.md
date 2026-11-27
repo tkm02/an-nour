@@ -5,6 +5,8 @@ Format : [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/) · versions : 
 
 ## [Non publié]
 ### Documentation
+- Recensement CO : texte d'information et de consentement validé le 2026-11-27 (version `2026-11-co-v1`,
+  inchangée) ; mention « À VALIDER » retirée du commentaire de `StepRecapitulatif.jsx`, texte affiché identique.
 - Domaine de production `https://annour.ci` (`www` redirigé) : `docs/ENVIRONMENTS.md` ; aucune adresse en dur dans le
   code. L'origine doit être ajoutée à `CORS_ORIGINS` de l'API (procédure : Backend `docs/DEPLOYMENT.md` §6).
 

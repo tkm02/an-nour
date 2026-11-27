@@ -81,7 +81,8 @@ export const RecapitulatifFiche = ({ valeurs, qualites, qualitesParCommission = 
   );
 };
 
-// À VALIDER PAR LE RESPONSABLE DU TRAITEMENT : texte d'information (finalités, accès, droits, conservation).
+// Texte d'information et de consentement validé le 2026-11-27 (version 2026-11-co-v1 enregistrée par l'API).
+// Toute modification du texte affiché impose une nouvelle CONSENTEMENT_VERSION côté API (recensement_co.py).
 // Ne pas compléter la durée de conservation ni le nom du responsable sans décision écrite de l'administration.
 const InformationDonnees = ({ version }) => (
   <details className="rco-details">
