@@ -6,9 +6,9 @@
 
 import { urlPhotoSure } from "../recensementCo/requetes";
 
-// Texte à faire valider par le responsable du traitement (comme celui du recensement CO)
+// Texte validé le 2026-11-27
 export const TEXTE_CONSENTEMENT_PHOTO =
-  "J'autorise l'utilisation de cette photo pour le badge et l'organisation du séminaire An-Nour 8.0. [À VALIDER]";
+  "J'autorise l'utilisation de cette photo pour le badge et l'organisation du séminaire An-Nour 8.0.";
 export const ERREUR_CONSENTEMENT_PHOTO = "Cochez l'autorisation d'utiliser la photo, ou retirez la photo.";
 
 export const PHOTO_VIDE = Object.freeze({ fichier: null, urlPrecedente: null, reprendre: false, consentement: false });

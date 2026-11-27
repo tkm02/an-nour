@@ -58,7 +58,7 @@ Format : [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/) · versions : 
 ### Ajouté
 - Photo d'identité facultative à l'étape « Informations » de l'inscription et de la réinscription (2026-11-27) :
   champ photo du recensement réutilisé (compression, silhouette), photo de l'an dernier affichée et reprise par
-  défaut en réinscription, consentement obligatoire dès qu'une photo est retenue (texte « À VALIDER »), envoi après
+  défaut en réinscription, consentement obligatoire dès qu'une photo est retenue (texte validé le 2026-11-27), envoi après
   la création de l'inscription (`POST /registrations/photo`) ; un échec de la photo n'empêche pas la confirmation,
   qui propose « Réessayer » (30 min) ou la prise à l'accueil.
 - Réinscription des séminaristes de l'édition précédente (`/inscription`) : question préalable « Étiez-vous
