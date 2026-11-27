@@ -14,3 +14,7 @@ export const chargerConfigurationReinscription = () => requete("/registrations/r
 /** POST /registrations/reinscription/recherche → {resultat, jeton_reinscription, fiche, deja_inscrit, matricule_actuel} */
 export const rechercherInscription = (corps) =>
   requete("/registrations/reinscription/recherche", { methode: "POST", json: corps });
+
+/** POST /registrations/photo (multipart : jeton_photo, consentement_photo, photo) → {matricule, photo_url, validated} */
+export const envoyerPhotoInscription = (formulaire) =>
+  requete("/registrations/photo", { methode: "POST", formulaire, delaiMs: 60000 });

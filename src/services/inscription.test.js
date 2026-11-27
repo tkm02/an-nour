@@ -1,4 +1,10 @@
-import { chargerConfigurationReinscription, chargerStatutInscriptions, rechercherInscription } from "./inscription";
+import {
+  chargerConfigurationReinscription,
+  chargerStatutInscriptions,
+  envoyerPhotoInscription,
+  rechercherInscription,
+} from "./inscription";
+import { formulairePhoto } from "../utils/inscription/photo";
 
 const reponse = (status, corps) => ({
   ok: status >= 200 && status < 300,
@@ -31,6 +37,17 @@ describe("service inscription (/api/v1/registrations/…)", () => {
     expect(url).toMatch(/\/api\/v1\/registrations\/reinscription\/recherche$/);
     expect(options.method).toBe("POST");
     expect(JSON.parse(options.body)).toEqual({ nom: "Test" });
+  });
+
+  it("POST /registrations/photo en multipart (sans Content-Type forcé)", async () => {
+    global.fetch.mockResolvedValue(reponse(200, { matricule: "M", photo_url: "https://exemple.test/p.jpg", validated: true }));
+    const formulaire = formulairePhoto("jeton-photo-fictif", new File(["x"], "photo.jpg", { type: "image/jpeg" }));
+    await envoyerPhotoInscription(formulaire);
+    const [url, options] = global.fetch.mock.calls[0];
+    expect(url).toMatch(/\/api\/v1\/registrations\/photo$/);
+    expect(options.method).toBe("POST");
+    expect(options.body).toBe(formulaire);
+    expect(options.headers["Content-Type"]).toBeUndefined();
   });
 
   it("transforme une erreur HTTP en ErreurApi", async () => {

@@ -189,3 +189,30 @@ describe("RegistrationPage — réinscription", () => {
     expect(service.rechercherInscription).not.toHaveBeenCalled();
   });
 });
+
+describe("RegistrationPage — photo de l'an dernier (2026-11-27)", () => {
+  it("trouvé avec photo : photo affichée à l'étape 1, consentement exigé pour continuer", async () => {
+    const photoUrl = "https://res.cloudinary.com/demo/participants_photos/AN25-TEST-001.jpg";
+    service.rechercherInscription.mockResolvedValue({ ...TROUVE, fiche: { ...FICHE, photo_url: photoUrl } });
+    await allerALaRecherche();
+    cliquer("Rechercher");
+
+    expect(await screen.findByRole("img", { name: /photo enregistrée/i })).toHaveAttribute("src", photoUrl);
+    cliquer("Continuer");
+    expect(await screen.findByText(/cochez l'autorisation d'utiliser la photo/i)).toBeInTheDocument();
+    expect(screen.queryByRole("heading", { name: "Informations de santé" })).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("checkbox", { name: /j'autorise l'utilisation de cette photo/i }));
+    cliquer("Continuer");
+    expect(await screen.findByRole("heading", { name: "Informations de santé" })).toBeInTheDocument();
+    // L'URL de la photo n'est pas écrite dans le stockage du navigateur
+    expect(window.sessionStorage.getItem(CLE_INSCRIPTION) || "").not.toMatch(/cloudinary/);
+  });
+
+  it("parcours « Non » : aucune photo proposée d'office, aucune case de consentement", async () => {
+    render(<RegistrationPage delaiMinimalMs={0} />);
+    cliquer("Non, c'est ma première inscription");
+    expect(await screen.findByRole("button", { name: /choisir une photo/i })).toBeInTheDocument();
+    expect(screen.queryByRole("checkbox", { name: /j'autorise/i })).not.toBeInTheDocument();
+  });
+});

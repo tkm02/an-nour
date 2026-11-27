@@ -338,3 +338,58 @@ describe("StepPayment — envoi final et réinscription (TAF lot 2)", () => {
     expect(screen.getByRole("button", { name: /Continuer/ })).toBeEnabled();
   });
 });
+
+// ---------------------------------------------------------------------------
+// Photo d'identité (2026-11-27) : reprise de la photo de l'an dernier dans le corps, envoi après la création,
+// un échec de la photo n'empêche jamais la confirmation
+// ---------------------------------------------------------------------------
+
+describe("StepPayment — photo d'identité", () => {
+  const PHOTO_PRECEDENTE = {
+    fichier: null, urlPrecedente: "https://res.cloudinary.com/demo/ancienne.jpg", reprendre: true, consentement: true,
+  };
+  const PHOTO_NOUVELLE = {
+    fichier: new File(["x"], "photo.jpg", { type: "image/jpeg" }), urlPrecedente: null, reprendre: false,
+    consentement: true,
+  };
+
+  beforeEach(() => {
+    axios.post.mockImplementation((url) =>
+      url.endsWith("/verify-receipt")
+        ? Promise.resolve(REPONSE_VERIFICATION)
+        : Promise.resolve({ data: { ...REPONSE_INSCRIPTION_LOT2.data, jeton_photo: "jeton-photo-fictif",
+          photo_url: null } })
+    );
+    uploadToCloudinary.mockResolvedValue({ success: true, url: "https://res.cloudinary.com/demo/recu.jpg", size: 1000 });
+  });
+
+  it("photo de l'an dernier retenue : reprendre_photo et consentement envoyés avec le jeton", async () => {
+    const { onNext } = await allerJusquAuContinuer({ jetonReinscription: "jeton-reinscription-fictif",
+      photo: PHOTO_PRECEDENTE });
+    fireEvent.click(screen.getByRole("button", { name: /Continuer/ }));
+    await waitFor(() => expect(onNext).toHaveBeenCalled());
+    expect(envoisInscription()[0][1].reinscription).toEqual({
+      jeton: "jeton-reinscription-fictif", reprendre_photo: true, consentement_photo: true,
+    });
+  });
+
+  it("nouvelle photo : onPhotoApresCreation reçoit « a_envoyer » et la réponse (jeton photo), puis confirmation", async () => {
+    const onPhotoApresCreation = jest.fn().mockResolvedValue(undefined);
+    const { onNext } = await allerJusquAuContinuer({ photo: PHOTO_NOUVELLE, onPhotoApresCreation });
+    fireEvent.click(screen.getByRole("button", { name: /Continuer/ }));
+    await waitFor(() => expect(onNext).toHaveBeenCalledTimes(1));
+    expect(onPhotoApresCreation).toHaveBeenCalledWith("a_envoyer", expect.objectContaining({ jeton_photo: "jeton-photo-fictif" }));
+    expect(envoisInscription()[0][1]).not.toHaveProperty("reinscription");
+    // Ni la photo ni son jeton dans le stockage du navigateur
+    expect(window.sessionStorage.getItem(CLE_INSCRIPTION)).not.toMatch(/jeton-photo|photo\.jpg/);
+  });
+
+  it("échec de la photo : l'inscription est quand même confirmée, aucun nouvel envoi de l'inscription", async () => {
+    const onPhotoApresCreation = jest.fn().mockRejectedValue(new Error("réseau"));
+    const { onNext } = await allerJusquAuContinuer({ photo: PHOTO_NOUVELLE, onPhotoApresCreation });
+    fireEvent.click(screen.getByRole("button", { name: /Continuer/ }));
+    await waitFor(() => expect(onNext).toHaveBeenCalledTimes(1));
+    expect(envoisInscription()).toHaveLength(1);
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+  });
+});

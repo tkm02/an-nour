@@ -1,8 +1,19 @@
 import React, { useState } from "react";
 import "./StepPersonnalInfo.css";
 import { COMMUNES_CI, cycleDuNiveau, NIVEAUX_ACADEMIQUES } from "../../utils/inscription/referentiels";
+import { PHOTO_VIDE, validerPhoto } from "../../utils/inscription/photo";
+import PhotoInscription from "./PhotoInscription";
 
-const StepPersonalInfo = ({ data, onChange, onNext, aideNiveau, avertissementIdentite }) => {
+const StepPersonalInfo = ({
+  data,
+  onChange,
+  onNext,
+  aideNiveau,
+  avertissementIdentite,
+  // Photo d'identité facultative (en mémoire, gérée par RegistrationPage)
+  photo = PHOTO_VIDE,
+  onPhotoChange = () => {},
+}) => {
   const [errors, setErrors] = useState({});
   // Cycle déduit du niveau déjà renseigné (réinscription pré-remplie), sinon aucun
   const [selectedCycle, setSelectedCycle] = useState(() => cycleDuNiveau(data.niveauAcademique));
@@ -60,6 +71,9 @@ const StepPersonalInfo = ({ data, onChange, onNext, aideNiveau, avertissementIde
     ) {
       newErrors.communeAutre = "Veuillez préciser votre commune";
     }
+
+    const erreurPhoto = validerPhoto(photo);
+    if (erreurPhoto) newErrors.photo = erreurPhoto;
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -306,6 +320,16 @@ const StepPersonalInfo = ({ data, onChange, onNext, aideNiveau, avertissementIde
           </div>
         )}
       </div>
+
+      <PhotoInscription
+        photo={photo}
+        sexe={data.sexe}
+        erreur={errors.photo}
+        onChange={(nouvelle) => {
+          onPhotoChange(nouvelle);
+          if (errors.photo && !validerPhoto(nouvelle)) setErrors(({ photo: _ignore, ...reste }) => reste);
+        }}
+      />
 
       <div className="form-actions">
         <button type="submit" className="btn btn-primary">

@@ -10,6 +10,7 @@ import ReinscriptionRecherche, { ReinscriptionChoix } from "../components/Regist
 import {
   chargerConfigurationReinscription,
   chargerStatutInscriptions,
+  envoyerPhotoInscription,
   rechercherInscription,
 } from "../services/inscription";
 import useAttenteLongue from "../utils/commun/useAttenteLongue";
@@ -25,6 +26,7 @@ import {
 } from "../utils/inscription/reinscription";
 import { formaterCloture, inscriptionsCloses } from "../utils/inscription/statut";
 import { migrerAncienneInscription } from "../utils/inscription/stockage";
+import { formulairePhoto, PHOTO_VIDE, photoDepuisFiche } from "../utils/inscription/photo";
 import "./RegistrationPage.css";
 
 // L'API refuse une recherche moins de 3 s après l'émission du jeton du formulaire : marge de sécurité
@@ -75,6 +77,9 @@ const RegistrationPage = ({ delaiMinimalMs = DELAI_MINIMAL_MS }) => {
   // Jeton et résultat en mémoire uniquement (jamais dans le stockage du navigateur)
   const [reinscription, setReinscription] = useState(null);
   const [matriculeActuel, setMatriculeActuel] = useState(null);
+  // Photo d'identité (fichier, photo de l'an dernier, consentement) et résultat de son envoi : en mémoire uniquement
+  const [photo, setPhoto] = useState(PHOTO_VIDE);
+  const [photoEnvoi, setPhotoEnvoi] = useState({ statut: "absente", jeton: null, url: null, enCours: false });
   const criteresRecherche = useRef(null);
   const identiteRetrouvee = useRef(null); // nom et prénom de l'inscription retrouvée, pour signaler une modification
   const jetonRecuA = useRef(0);
@@ -127,6 +132,7 @@ const RegistrationPage = ({ delaiMinimalMs = DELAI_MINIMAL_MS }) => {
     // Parcours actuel, inchangé (aucun jeton de réinscription)
     setReinscription(null);
     setFormData(formulaireInitial());
+    setPhoto(PHOTO_VIDE);
     setPhase("formulaire");
     setCurrentStep(1);
   };
@@ -149,7 +155,9 @@ const RegistrationPage = ({ delaiMinimalMs = DELAI_MINIMAL_MS }) => {
       base.personalInfo = { ...base.personalInfo, ...prerempli.personalInfo };
       identiteRetrouvee.current = { nom: prerempli.personalInfo.nom, prenom: prerempli.personalInfo.prenom };
       base.healthInfo = prerempli.healthInfo;
+      setPhoto(photoDepuisFiche(reponse.fiche)); // photo de l'an dernier affichée et proposée
     } else {
+      setPhoto(PHOTO_VIDE);
       identiteRetrouvee.current = null;
       // Résultat neutre : seuls le nom et le prénom saisis par la personne sont repris
       base.personalInfo = { ...base.personalInfo, nom: criteres.nom.trim(), prenom: criteres.prenom.trim() };
@@ -223,6 +231,19 @@ const RegistrationPage = ({ delaiMinimalMs = DELAI_MINIMAL_MS }) => {
     { number: 4, title: "Paiement", icon: "💳" },
     { number: 5, title: "Confirmation", icon: "✓" },
   ];
+
+  /** Envoi (ou nouvel essai) de la photo choisie avec le jeton reçu à la création ; jamais bloquant. */
+  const envoyerPhoto = async (jeton) => {
+    if (!jeton || !photo.fichier) return;
+    setPhotoEnvoi((p) => ({ ...p, jeton, enCours: true }));
+    try {
+      const reponse = await envoyerPhotoInscription(formulairePhoto(jeton, photo.fichier));
+      setPhotoEnvoi({ statut: "envoyee", jeton, url: reponse.photo_url || null, enCours: false });
+    } catch {
+      // Aucune journalisation : l'inscription est créée, la photo pourra être réessayée ou prise à l'accueil
+      setPhotoEnvoi({ statut: "echec", jeton, url: null, enCours: false });
+    }
+  };
 
   const updateFormData = (section, data) => {
     setFormData((prev) => ({
@@ -306,6 +327,8 @@ const RegistrationPage = ({ delaiMinimalMs = DELAI_MINIMAL_MS }) => {
               data={formData.personalInfo}
               onChange={(data) => updateFormData("personalInfo", data)}
               onNext={handleNext}
+              photo={photo}
+              onPhotoChange={setPhoto}
               avertissementIdentite={
                 reinscription?.resultat === "trouve" &&
                 identiteModifiee(identiteRetrouvee.current, formData.personalInfo)
@@ -352,10 +375,22 @@ const RegistrationPage = ({ delaiMinimalMs = DELAI_MINIMAL_MS }) => {
             onPrevious={handlePrevious}
             jetonReinscription={reinscription?.jeton || null}
             onRenouvelerReinscription={renouvelerReinscription}
+            photo={photo}
+            onPhotoApresCreation={async (statut, reponse) => {
+              setPhotoEnvoi({ statut, jeton: reponse?.jeton_photo || null, url: reponse?.photo_url || null,
+                enCours: false });
+              if (statut === "a_envoyer") await envoyerPhoto(reponse.jeton_photo);
+            }}
           />
         );
       case 5:
-        return <StepConfirmation data={formData} />;
+        return (
+          <StepConfirmation
+            data={formData}
+            photo={{ ...photoEnvoi, fichier: photo.fichier }}
+            onReessayerPhoto={() => envoyerPhoto(photoEnvoi.jeton)}
+          />
+        );
       default:
         return null;
     }

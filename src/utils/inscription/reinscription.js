@@ -95,7 +95,7 @@ export const ficheVersFormulaire = (fiche, aujourdHui = new Date()) => ({
  * Corps de POST /registrations (structure existante) + `reinscription: {jeton}` si la personne a suivi le parcours
  * de réinscription. `source` = inscription complète (mémoire + preuve de paiement conservée).
  */
-export const construireInscription = (source, jetonReinscription = null) => {
+export const construireInscription = (source, jetonReinscription = null, optionsPhoto = {}) => {
   const personnel = source.personalInfo || {};
   const corps = {
     personalInfo: {
@@ -124,7 +124,8 @@ export const construireInscription = (source, jetonReinscription = null) => {
     },
   };
   if (jetonReinscription) {
-    corps.reinscription = { jeton: jetonReinscription };
+    // optionsPhoto : reprise de la photo de l'an dernier ({reprendre_photo, consentement_photo}, utils/inscription/photo.js)
+    corps.reinscription = { jeton: jetonReinscription, ...optionsPhoto };
   }
   return corps;
 };

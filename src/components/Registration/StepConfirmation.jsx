@@ -5,8 +5,51 @@ import { useNavigate } from 'react-router-dom';
 import PDFGenerator from '../PDFGenerator';
 import './StepConfirmation.css';
 import { effacerInscription, inscriptionComplete } from '../../utils/inscription/stockage';
+import { ApercuPhoto } from '../RecensementCo/PhotoField';
+import '../../pages/RecensementCoPage.css';
+import './Reinscription.css';
+import './PhotoInscription.css';
 
-const StepConfirmation = ({ data: enMemoire }) => {
+// Statut de la photo (en mémoire, RegistrationPage) : envoyee | reprise | echec | absente
+const StatutPhoto = ({ photo, sexe, onReessayer }) => {
+  if (!photo) return null;
+  const { statut, url, fichier, jeton, enCours } = photo;
+  if (statut === 'envoyee' || statut === 'reprise') {
+    return (
+      <div className="rco-formulaire-public photo-inscription-statut" role="status">
+        <ApercuPhoto fichier={statut === 'envoyee' ? fichier : null} urlExistante={url} sexe={sexe} />
+        <p>Photo enregistrée : elle figurera sur votre badge.</p>
+      </div>
+    );
+  }
+  if (statut === 'echec' || statut === 'a_envoyer') {
+    return (
+      <div className="rco-formulaire-public">
+        <div className="rco-alerte rco-alerte-info" role="alert">
+          <p>
+            {enCours
+              ? 'Envoi de la photo en cours…'
+              : "Votre inscription est bien enregistrée, mais la photo n'a pas pu être envoyée. Vous pouvez " +
+                "réessayer maintenant (dans les 30 minutes) ; sinon elle sera prise à l'accueil."}
+          </p>
+          {jeton && fichier && (
+            <button type="button" className="rco-bouton rco-bouton-secondaire" onClick={onReessayer}
+              aria-disabled={enCours ? 'true' : undefined} disabled={enCours}>
+              Réessayer l'envoi de la photo
+            </button>
+          )}
+        </div>
+      </div>
+    );
+  }
+  return (
+    <div className="rco-formulaire-public">
+      <p className="rco-aide">Aucune photo envoyée : elle sera prise à l'accueil.</p>
+    </div>
+  );
+};
+
+const StepConfirmation = ({ data: enMemoire, photo = null, onReessayerPhoto = () => {} }) => {
   const navigate = useNavigate();
   // Inscription conservée dans l'onglet (paiement, matricule) + identité, dortoir et santé lus en mémoire
   // (la santé n'est jamais écrite dans le navigateur)
@@ -63,6 +106,8 @@ const StepConfirmation = ({ data: enMemoire }) => {
           Félicitations ! Votre inscription au Séminaire An-Nour 8.0 a été validée avec succès.
         </p>
       </div>
+
+      <StatutPhoto photo={photo} sexe={data.personalInfo?.sexe} onReessayer={onReessayerPhoto} />
 
       <div className="confirmation-card">
         <div className="card-header">

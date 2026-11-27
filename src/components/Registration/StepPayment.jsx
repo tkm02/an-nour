@@ -11,6 +11,7 @@ import {
   MESSAGE_SESSION_REINSCRIPTION,
   typeErreurReinscription,
 } from "../../utils/inscription/reinscription";
+import { optionsReprisePhoto, PHOTO_VIDE, statutApresCreation } from "../../utils/inscription/photo";
 
 const StepPayment = ({
   data,
@@ -20,6 +21,9 @@ const StepPayment = ({
   // Réinscription (TAF lot 2) : jeton en mémoire uniquement, renouvelé automatiquement s'il a expiré
   jetonReinscription = null,
   onRenouvelerReinscription,
+  // Photo d'identité (en mémoire) : reprise de la photo de l'an dernier dans le corps, envoi après la création
+  photo = PHOTO_VIDE,
+  onPhotoApresCreation,
 }) => {
   const [paymentStatus, setPaymentStatus] = useState("pending");
   const [transactionId, setTransactionId] = useState("");
@@ -201,7 +205,7 @@ const StepPayment = ({
     axios.post(
       `${API_URL}/api/v1/registrations`,
       // Identité, dortoir et santé lus en mémoire ; preuve de paiement lue dans le stockage de l'onglet
-      construireInscription(inscriptionComplete(data), jeton),
+      construireInscription(inscriptionComplete(data), jeton, optionsReprisePhoto(photo)),
       { headers: { "Content-Type": "application/json" } }
     );
 
@@ -239,6 +243,14 @@ const StepPayment = ({
         qrCode: response.data.qrCode,
         confirmedAt: response.data.confirmedAt,
       });
+      // Photo : envoyée après la création ; un échec n'empêche jamais la confirmation (inscription déjà créée)
+      if (onPhotoApresCreation) {
+        try {
+          await onPhotoApresCreation(statutApresCreation(photo, response.data), response.data);
+        } catch {
+          // échec signalé à l'écran de confirmation (statut « echec »), sans journalisation
+        }
+      }
       // Passer à l'étape de confirmation
       onNext();
     } catch (error) {
