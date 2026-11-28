@@ -116,6 +116,8 @@ export const construireInscription = (source, jetonReinscription = null, options
     healthInfo: {
       allergie: source.healthInfo?.allergie,
       antecedentMedical: source.healthInfo?.antecedentMedical,
+      // TAF lot 4 : exigé par l'API si une allergie ou un antécédent est déclaré (utils/inscription/sante.js)
+      consentementSante: Boolean(source.healthInfo?.consentementSante),
     },
     paymentInfo: {
       transactionId: source.paymentInfo?.transactionId,

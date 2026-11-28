@@ -216,7 +216,7 @@ const DATA_REINSCRIPTION = {
     niveauAcademique: "2nde",
   },
   dormitoryInfo: { dortoir: "Dortoir de test", dortoirId: "D-TEST", dortoirCode: "D-TEST", matricule: "" },
-  healthInfo: { allergie: "Arachide (fictif)", antecedentMedical: "Néant" },
+  healthInfo: { allergie: "Arachide (fictif)", antecedentMedical: "Néant", consentementSante: true },
   paymentInfo: { status: "pending", amount: 7000 },
 };
 
@@ -269,7 +269,9 @@ describe("StepPayment — envoi final et réinscription (TAF lot 2)", () => {
     fireEvent.click(screen.getByRole("button", { name: /Continuer/ }));
     await waitFor(() => expect(onNext).toHaveBeenCalled());
     const corps = envoisInscription()[0][1];
-    expect(corps.healthInfo).toEqual({ allergie: "Arachide (fictif)", antecedentMedical: "Néant" });
+    expect(corps.healthInfo).toEqual({
+      allergie: "Arachide (fictif)", antecedentMedical: "Néant", consentementSante: true,
+    });
     expect(corps.paymentInfo).toEqual({
       transactionId: "TX-FICTIF-1",
       receiptUrl: "https://res.cloudinary.com/demo/recu.jpg",

@@ -137,6 +137,14 @@ describe("construireInscription", () => {
     expect(corps.personalInfo).toMatchObject({ communeAutre: "", contactSeminariste: "" });
   });
 
+  it("transmet le consentement santé (faux par défaut)", () => {
+    expect(construireInscription(source).healthInfo).toEqual({
+      allergie: "RAS", antecedentMedical: "Néant", consentementSante: false,
+    });
+    const avecSante = { ...source, healthInfo: { allergie: "Arachide (fictif)", consentementSante: true } };
+    expect(construireInscription(avecSante).healthInfo.consentementSante).toBe(true);
+  });
+
   it("ajoute reinscription: {jeton} dans le parcours « Oui »", () => {
     expect(construireInscription(source, "jeton-reinscription-fictif").reinscription).toEqual({
       jeton: "jeton-reinscription-fictif",
