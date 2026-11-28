@@ -7,6 +7,7 @@ import { normaliserTelephone, validerTelephone } from "../commun/telephone";
 import { normaliserLibelle } from "../recensementCo/requetes";
 import { calculerAge, validerNom } from "../recensementCo/validation";
 import { COMMUNES_CI, NIVEAUX_ACADEMIQUES } from "./referentiels";
+import { santeRenseignee } from "./sante";
 
 export const MATRICULE_MAX = 40;
 
@@ -116,6 +117,9 @@ export const construireInscription = (source, jetonReinscription = null, options
     healthInfo: {
       allergie: source.healthInfo?.allergie,
       antecedentMedical: source.healthInfo?.antecedentMedical,
+      // TAF lot 4 : exigé par l'API si une allergie ou un antécédent est déclaré (utils/inscription/sante.js) ;
+      // revue des lots 3-4 : jamais envoyé sans donnée de santé déclarée
+      consentementSante: Boolean(source.healthInfo?.consentementSante) && santeRenseignee(source.healthInfo || {}),
     },
     paymentInfo: {
       transactionId: source.paymentInfo?.transactionId,

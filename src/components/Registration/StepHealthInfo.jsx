@@ -1,32 +1,49 @@
 import React, { useState } from 'react';
+import { CONSENTEMENT_SANTE_REQUIS, santeRenseignee } from '../../utils/inscription/sante';
 import './StepHealthInfo.css';
 
 const StepHealthInfo = ({ data, onChange, onNext, onPrevious }) => {
   const [customAllergie, setCustomAllergie] = useState(data.allergie !== 'RAS');
   const [customAntecedent, setCustomAntecedent] = useState(data.antecedentMedical !== 'Néant');
+  const [erreurConsentement, setErreurConsentement] = useState('');
+  const consentementRequis = santeRenseignee(data);
+
+  // Revue de sécurité des lots 3-4 : un retour à « RAS / Néant » décoche le consentement, qui ne réapparaît pas
+  // déjà coché pour une autre information de santé
+  const modifierSante = (champs) => {
+    const retourSansObjet = data.consentementSante && !santeRenseignee({ ...data, ...champs });
+    onChange(retourSansObjet ? { ...champs, consentementSante: false } : champs);
+  };
 
   const handleAllergieChange = (value) => {
     if (value === 'custom') {
       setCustomAllergie(true);
-      onChange({ allergie: '' });
+      modifierSante({ allergie: '' });
     } else {
       setCustomAllergie(false);
-      onChange({ allergie: value });
+      modifierSante({ allergie: value });
     }
   };
 
   const handleAntecedentChange = (value) => {
     if (value === 'custom') {
       setCustomAntecedent(true);
-      onChange({ antecedentMedical: '' });
+      modifierSante({ antecedentMedical: '' });
     } else {
       setCustomAntecedent(false);
-      onChange({ antecedentMedical: value });
+      modifierSante({ antecedentMedical: value });
     }
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    // TAF lot 4 : l'API refuse une donnée de santé déclarée sans consentement (422)
+    if (consentementRequis && !data.consentementSante) {
+      setErreurConsentement(CONSENTEMENT_SANTE_REQUIS);
+      const caseConsentement = document.getElementById('consentement-sante');
+      if (caseConsentement) caseConsentement.focus();
+      return;
+    }
     onNext();
   };
 
@@ -79,7 +96,7 @@ const StepHealthInfo = ({ data, onChange, onNext, onPrevious }) => {
               <textarea
                 rows="3"
                 value={data.allergie}
-                onChange={(e) => onChange({ allergie: e.target.value })}
+                onChange={(e) => modifierSante({ allergie: e.target.value })}
                 placeholder="Décrivez vos allergies (alimentaires, médicamenteuses, etc.)"
                 className="form-textarea"
               />
@@ -123,7 +140,7 @@ const StepHealthInfo = ({ data, onChange, onNext, onPrevious }) => {
               <textarea
                 rows="3"
                 value={data.antecedentMedical}
-                onChange={(e) => onChange({ antecedentMedical: e.target.value })}
+                onChange={(e) => modifierSante({ antecedentMedical: e.target.value })}
                 placeholder="Décrivez vos antécédents médicaux"
                 className="form-textarea"
               />
@@ -133,6 +150,44 @@ const StepHealthInfo = ({ data, onChange, onNext, onPrevious }) => {
             </div>
           )}
         </div>
+
+        {consentementRequis && (
+          <div className={`form-group consentement-sante${erreurConsentement ? ' consentement-sante-erreur' : ''}`}>
+            <label className="consentement-sante-label" htmlFor="consentement-sante">
+              <input
+                id="consentement-sante"
+                type="checkbox"
+                checked={Boolean(data.consentementSante)}
+                onChange={(e) => {
+                  onChange({ consentementSante: e.target.checked });
+                  if (e.target.checked) setErreurConsentement('');
+                }}
+                aria-invalid={erreurConsentement ? true : undefined}
+                aria-describedby={erreurConsentement ? 'consentement-sante-erreur' : 'consentement-sante-info'}
+              />
+              {/* Texte du consentement validé le 2026-11-28 (version 2026-11-sante-v1 enregistrée par l'API).
+                  Le modifier impose une nouvelle version. */}
+              <span>
+                J'accepte que ces informations de santé soient enregistrées et utilisées pour la prise en charge
+                du séminariste pendant le séminaire. Si le séminariste est mineur, je donne cet accord en tant que
+                parent ou tuteur. <span className="required">*</span>
+              </span>
+            </label>
+            <ul className="consentement-sante-info" id="consentement-sante-info">
+              <li>Accès limité à la commission Santé et à l'administration du séminaire.</li>
+              <li>Effacement au plus tard à la clôture de l'édition suivante du séminaire.</li>
+              <li>
+                Accès, rectification ou suppression : sur demande auprès de l'administration du séminaire
+                (loi ivoirienne n°2013-450 relative à la protection des données à caractère personnel).
+              </li>
+            </ul>
+            {erreurConsentement && (
+              <p className="consentement-sante-message" id="consentement-sante-erreur" role="alert">
+                {erreurConsentement}
+              </p>
+            )}
+          </div>
+        )}
 
         <div className="health-note">
           <p>

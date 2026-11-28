@@ -76,3 +76,45 @@ textarea{
   border: 1px solid #000;
   border-radius: 5px;
 }
+
+/* Consentement aux données de santé (TAF lot 4) */
+.consentement-sante {
+  padding: 1.25rem;
+  border: 1px solid var(--light-gray, #d1d5db);
+  border-radius: var(--radius-md);
+  margin-top: 1.5rem;
+}
+
+.consentement-sante-erreur {
+  border-color: #dc2626;
+}
+
+.consentement-sante-label {
+  display: flex;
+  gap: 0.75rem;
+  align-items: flex-start;
+  font-weight: 500;
+  line-height: 1.5;
+  cursor: pointer;
+}
+
+.consentement-sante-label input {
+  width: 1.25rem;
+  height: 1.25rem;
+  min-width: 1.25rem;
+  margin-top: 0.15rem;
+}
+
+.consentement-sante-info {
+  margin: 0.75rem 0 0 2rem;
+  font-size: 0.875rem;
+  color: var(--dark-gray);
+  line-height: 1.5;
+}
+
+.consentement-sante-message {
+  margin-top: 0.5rem;
+  color: #b91c1c;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
