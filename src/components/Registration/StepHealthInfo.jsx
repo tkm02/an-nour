@@ -158,7 +158,8 @@ const StepHealthInfo = ({ data, onChange, onNext, onPrevious }) => {
                 aria-invalid={erreurConsentement ? true : undefined}
                 aria-describedby={erreurConsentement ? 'consentement-sante-erreur' : 'consentement-sante-info'}
               />
-              {/* Texte du consentement : version 2026-11-sante-v1 (API). Le modifier impose une nouvelle version. */}
+              {/* Texte du consentement validé le 2026-11-28 (version 2026-11-sante-v1 enregistrée par l'API).
+                  Le modifier impose une nouvelle version. */}
               <span>
                 J'accepte que ces informations de santé soient enregistrées et utilisées pour la prise en charge
                 du séminariste pendant le séminaire. Si le séminariste est mineur, je donne cet accord en tant que

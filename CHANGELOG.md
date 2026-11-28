@@ -7,7 +7,7 @@ Format : [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/) · versions : 
 ### Ajouté — consentement santé (TAF lot 4, 2026-11-28)
 - Inscription et réinscription : case de consentement obligatoire à l'étape santé dès qu'une allergie ou un
   antécédent est déclaré (y compris pré-rempli depuis l'an dernier), accord du parent ou tuteur pour un mineur ;
-  `healthInfo.consentementSante` envoyé à l'API (texte version `2026-11-sante-v1`).
+  `healthInfo.consentementSante` envoyé à l'API (texte version `2026-11-sante-v1`, validé le 2026-11-28).
 - Déployable **avant** l'API : l'API actuelle ignore ce champ ; l'API du lot 4 refuse (422) une donnée de santé
   sans consentement.
 
