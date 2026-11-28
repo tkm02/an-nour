@@ -62,4 +62,19 @@ describe("StepHealthInfo — consentement santé (TAF lot 4)", () => {
     fireEvent.click(screen.getByRole("button", { name: /Suivant/ }));
     expect(onNext).toHaveBeenCalled();
   });
+
+  it("revue des lots 3-4 : un retour à RAS décoche le consentement, redemandé pour une autre allergie", () => {
+    const onNext = jest.fn();
+    render(<Etape initial={{ allergie: "Arachide (fictif)", antecedentMedical: "Néant" }} onNext={onNext} />);
+    fireEvent.click(screen.getByRole("checkbox"));
+    expect(screen.getByRole("checkbox")).toBeChecked();
+
+    fireEvent.click(screen.getByLabelText(/RAS \(Rien à signaler\)/));
+    fireEvent.click(screen.getByRole("button", { name: /Suivant/ }));
+    expect(onNext).toHaveBeenLastCalledWith(expect.objectContaining({ allergie: "RAS", consentementSante: false }));
+
+    fireEvent.click(screen.getByLabelText(/J'ai des allergies/));
+    fireEvent.change(screen.getByPlaceholderText(/Décrivez vos allergies/), { target: { value: "Pollen (fictif)" } });
+    expect(screen.getByRole("checkbox")).not.toBeChecked();
+  });
 });

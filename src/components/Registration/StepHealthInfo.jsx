@@ -8,23 +8,30 @@ const StepHealthInfo = ({ data, onChange, onNext, onPrevious }) => {
   const [erreurConsentement, setErreurConsentement] = useState('');
   const consentementRequis = santeRenseignee(data);
 
+  // Revue de sécurité des lots 3-4 : un retour à « RAS / Néant » décoche le consentement, qui ne réapparaît pas
+  // déjà coché pour une autre information de santé
+  const modifierSante = (champs) => {
+    const retourSansObjet = data.consentementSante && !santeRenseignee({ ...data, ...champs });
+    onChange(retourSansObjet ? { ...champs, consentementSante: false } : champs);
+  };
+
   const handleAllergieChange = (value) => {
     if (value === 'custom') {
       setCustomAllergie(true);
-      onChange({ allergie: '' });
+      modifierSante({ allergie: '' });
     } else {
       setCustomAllergie(false);
-      onChange({ allergie: value });
+      modifierSante({ allergie: value });
     }
   };
 
   const handleAntecedentChange = (value) => {
     if (value === 'custom') {
       setCustomAntecedent(true);
-      onChange({ antecedentMedical: '' });
+      modifierSante({ antecedentMedical: '' });
     } else {
       setCustomAntecedent(false);
-      onChange({ antecedentMedical: value });
+      modifierSante({ antecedentMedical: value });
     }
   };
 
@@ -89,7 +96,7 @@ const StepHealthInfo = ({ data, onChange, onNext, onPrevious }) => {
               <textarea
                 rows="3"
                 value={data.allergie}
-                onChange={(e) => onChange({ allergie: e.target.value })}
+                onChange={(e) => modifierSante({ allergie: e.target.value })}
                 placeholder="Décrivez vos allergies (alimentaires, médicamenteuses, etc.)"
                 className="form-textarea"
               />
@@ -133,7 +140,7 @@ const StepHealthInfo = ({ data, onChange, onNext, onPrevious }) => {
               <textarea
                 rows="3"
                 value={data.antecedentMedical}
-                onChange={(e) => onChange({ antecedentMedical: e.target.value })}
+                onChange={(e) => modifierSante({ antecedentMedical: e.target.value })}
                 placeholder="Décrivez vos antécédents médicaux"
                 className="form-textarea"
               />

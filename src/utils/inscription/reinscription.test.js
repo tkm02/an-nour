@@ -145,6 +145,11 @@ describe("construireInscription", () => {
     expect(construireInscription(avecSante).healthInfo.consentementSante).toBe(true);
   });
 
+  it("n'envoie jamais de consentement sans donnée de santé déclarée (revue des lots 3-4)", () => {
+    const sansObjet = { ...source, healthInfo: { allergie: "RAS", antecedentMedical: "Néant", consentementSante: true } };
+    expect(construireInscription(sansObjet).healthInfo.consentementSante).toBe(false);
+  });
+
   it("ajoute reinscription: {jeton} dans le parcours « Oui »", () => {
     expect(construireInscription(source, "jeton-reinscription-fictif").reinscription).toEqual({
       jeton: "jeton-reinscription-fictif",
