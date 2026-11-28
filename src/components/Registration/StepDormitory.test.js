@@ -1,7 +1,7 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import axios from 'axios';
-import StepDormitory from './StepDormitory';
+import StepDormitory, { codePepiniere } from './StepDormitory';
 
 jest.mock('axios', () => ({ __esModule: true, default: { get: jest.fn() } }));
 
@@ -14,7 +14,7 @@ const DORTOIRS = [
 
 let consoleSpies;
 beforeEach(() => {
-  // Le composant journalise encore la réponse au chargement (dette P-22) : silence dans les tests
+  // Silence dans les tests ; la Pépinière (P-30) vérifie en plus qu'aucun journal de débogage n'est émis
   consoleSpies = ['log', 'error'].map((m) => jest.spyOn(console, m).mockImplementation(() => {}));
   axios.get.mockResolvedValue({ data: DORTOIRS });
 });
@@ -70,5 +70,53 @@ describe('StepDormitory — accessibilité clavier (P-25)', () => {
 
     expect(await screen.findByRole('radio', { name: /dortoir gamma/i })).toBeChecked();
     expect(screen.getByRole('radio', { name: /dortoir alpha/i })).not.toBeChecked();
+  });
+});
+
+// Dortoirs fictifs : libellés réels de l'API (« Pépinière – Garçons/Filles ») différents des anciens libellés
+const DORTOIRS_PEPINIERE = [
+  { code: 'PEPINIERE-G', name: 'Pépinière – Garçons', available: 12, capacity: 50 },
+  { code: 'PEPINIERE-F', name: 'Pépinière – Filles', available: 8, capacity: 50 },
+  { code: 'D-TEST', name: 'Dortoir de test', available: 5, capacity: 30 },
+];
+
+function rendrePepiniere(age, sexe) {
+  const onChange = jest.fn();
+  render(
+    <StepDormitory
+      data={{ age, dortoir: '', dortoirId: '', dortoirCode: '' }}
+      sexe={sexe}
+      onChange={onChange}
+      onNext={jest.fn()}
+      onPrevious={jest.fn()}
+    />
+  );
+  return onChange;
+}
+
+describe('StepDormitory — Pépinière (régression P-30)', () => {
+  beforeEach(() => axios.get.mockResolvedValue({ data: DORTOIRS_PEPINIERE }));
+  // Plus de journalisation de débogage (réponse de l'API, dortoir choisi)
+  afterEach(() => expect(console.log).not.toHaveBeenCalled());
+
+  test('identifie les dortoirs Pépinière par leur code', () => {
+    expect(codePepiniere('M')).toBe('PEPINIERE-G');
+    expect(codePepiniere('F')).toBe('PEPINIERE-F');
+  });
+
+  test.each([
+    ['M', 'PEPINIERE-G', 'Pépinière – Garçons'],
+    ['F', 'PEPINIERE-F', 'Pépinière – Filles'],
+  ])('sélectionne automatiquement la Pépinière par code pour un enfant de 8 ans (sexe %s)', async (sexe, code, nom) => {
+    const onChange = rendrePepiniere('8', sexe);
+    await waitFor(() =>
+      expect(onChange).toHaveBeenCalledWith({ dortoir: nom, dortoirId: code, dortoirCode: code, matricule: '' })
+    );
+  });
+
+  test('ne sélectionne rien automatiquement hors tranche 5–11 ans', async () => {
+    const onChange = rendrePepiniere('16', 'M');
+    await waitFor(() => expect(axios.get).toHaveBeenCalled());
+    expect(onChange).not.toHaveBeenCalled();
   });
 });

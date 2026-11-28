@@ -56,6 +56,17 @@ Format : [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/) · versions : 
   à créer votre compte… » retirée de l'aide du champ e-mail.
 
 ### Ajouté
+- Photo d'identité facultative à l'étape « Informations » de l'inscription et de la réinscription (2026-11-27) :
+  champ photo du recensement réutilisé (compression, silhouette), photo de l'an dernier affichée et reprise par
+  défaut en réinscription, consentement obligatoire dès qu'une photo est retenue (texte validé le 2026-11-27), envoi après
+  la création de l'inscription (`POST /registrations/photo`) ; un échec de la photo n'empêche pas la confirmation,
+  qui propose « Réessayer » (30 min) ou la prise à l'accueil.
+- Réinscription des séminaristes de l'édition précédente (`/inscription`) : question préalable « Étiez-vous
+  inscrit(e) à l'édition précédente ? », recherche (nom, prénom, téléphone, matricule facultatif) avec champ
+  piège et jeton de formulaire, pré-remplissage des étapes existantes (santé comprise) si l'inscription est
+  retrouvée, écran « déjà inscrit(e) », `reinscription: {jeton}` envoyé dans `POST /registrations` (jeton
+  renouvelé automatiquement s'il a expiré pendant le paiement) ; date de clôture affichée depuis
+  `GET /registrations/status` et écran « inscriptions closes ».
 - Recensement des membres du CO : formulaire public `/recensement-co` en 3 étapes (identification, vérification /
   saisie, récapitulatif + consentement), API `/api/v1/co/*`, photo facultative compressée dans le navigateur,
   silhouette `IdPhotoPlaceholder`, progression conservée dans l'onglet (`sessionStorage`, sans date de naissance,
@@ -74,7 +85,17 @@ Format : [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/) · versions : 
   (architecture, conventions, fonctionnalités, sécurité, tests, environnements, déploiement, exploitation,
   design system, lignes directrices UX, dette technique, audit initial, ADR, modèles).
 - `README.md` : section de présentation du projet (le guide Create React App est conservé).
+### Corrigé
+- Pépinière (P-30) : sélection automatique du dortoir par code (`PEPINIERE-G` / `PEPINIERE-F`).
+- Étape Paiement : envoi final protégé contre le double clic ; « déjà inscrit(e) » (409) et session de
+  réinscription expirée affichés dans le message d'échec de l'envoi (P-23, avec « Réessayer ») ; journalisation
+  console de débogage retirée de `StepDormitory.jsx`.
+- Réinscription : avertissement si le nom ou le prénom de l'inscription retrouvée est modifié (vérification par
+  l'administration) ; téléphone de recherche limité au numéro national à 10 chiffres.
 ### Sécurité
+- Inscription en cours : `sessionStorage` (onglet) au lieu de `localStorage` (ancienne clé supprimée au
+  chargement), sans données de santé ni jeton de réinscription ; santé lue en mémoire pour l'envoi et la
+  confirmation (P-06).
 - `.env.example` : valeurs réelles (Cloudinary, URL de l'API) remplacées par des marqueurs ; variables documentées.
 
 ## [0.1.0] — état au 2026-11-19

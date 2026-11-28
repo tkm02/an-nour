@@ -1,38 +1,68 @@
 
 // src/components/Registration/StepConfirmation.jsx
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import PDFGenerator from '../PDFGenerator';
 import './StepConfirmation.css';
+import { effacerInscription, inscriptionComplete } from '../../utils/inscription/stockage';
+import { ApercuPhoto } from '../RecensementCo/PhotoField';
+import '../../pages/RecensementCoPage.css';
+import './Reinscription.css';
+import './PhotoInscription.css';
 
-const StepConfirmation = () => {
+// Statut de la photo (en mémoire, RegistrationPage) : envoyee | reprise | echec | absente
+const StatutPhoto = ({ photo, sexe, onReessayer }) => {
+  if (!photo) return null;
+  const { statut, url, fichier, jeton, enCours } = photo;
+  if (statut === 'envoyee' || statut === 'reprise') {
+    return (
+      <div className="rco-formulaire-public photo-inscription-statut" role="status">
+        <ApercuPhoto fichier={statut === 'envoyee' ? fichier : null} urlExistante={url} sexe={sexe} />
+        <p>Photo enregistrée : elle figurera sur votre badge.</p>
+      </div>
+    );
+  }
+  if (statut === 'echec' || statut === 'a_envoyer') {
+    return (
+      <div className="rco-formulaire-public">
+        <div className="rco-alerte rco-alerte-info" role="alert">
+          <p>
+            {enCours
+              ? 'Envoi de la photo en cours…'
+              : "Votre inscription est bien enregistrée, mais la photo n'a pas pu être envoyée. Vous pouvez " +
+                "réessayer maintenant (dans les 30 minutes) ; sinon elle sera prise à l'accueil."}
+          </p>
+          {jeton && fichier && (
+            <button type="button" className="rco-bouton rco-bouton-secondaire" onClick={onReessayer}
+              aria-disabled={enCours ? 'true' : undefined} disabled={enCours}>
+              Réessayer l'envoi de la photo
+            </button>
+          )}
+        </div>
+      </div>
+    );
+  }
+  return (
+    <div className="rco-formulaire-public">
+      <p className="rco-aide">Aucune photo envoyée : elle sera prise à l'accueil.</p>
+    </div>
+  );
+};
+
+const StepConfirmation = ({ data: enMemoire, photo = null, onReessayerPhoto = () => {} }) => {
   const navigate = useNavigate();
-  const [data, setData] = useState(null);
-  const [qrCodeUrl, setQrCodeUrl] = useState('');
+  // Inscription conservée dans l'onglet (paiement, matricule) + identité, dortoir et santé lus en mémoire
+  // (la santé n'est jamais écrite dans le navigateur)
+  const [data] = useState(() => {
+    const complete = inscriptionComplete(enMemoire);
+    return complete.personalInfo?.nom || complete.matricule ? complete : null;
+  });
 
-  useEffect(() => {
-    // Récupérer les données du localStorage
-    const savedData = localStorage.getItem('an-nour-registration');
-    
-    if (savedData) {
-      const parsedData = JSON.parse(savedData);
-      setData(parsedData);
-      
-      // Générer QR code avec le matricule
-      if (parsedData.matricule || parsedData.dormitoryInfo?.matricule) {
-        const matricule = parsedData.matricule || parsedData.dormitoryInfo.matricule;
-        generateQRCode(matricule);
-      }
-    }
-  }, []);
-
-  const generateQRCode = async (matricule) => {
-    try {
-      setQrCodeUrl(`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${matricule}`);
-    } catch (error) {
-      console.error('Erreur génération QR code:', error);
-    }
-  };
+  // QR code généré à partir du matricule (même service qu'auparavant)
+  const matriculeQr = data?.matricule || data?.dormitoryInfo?.matricule;
+  const qrCodeUrl = matriculeQr
+    ? `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${matriculeQr}`
+    : '';
 
   const handleDownloadPDF = () => {
     if (data) {
@@ -41,7 +71,7 @@ const StepConfirmation = () => {
   };
 
   const handleNewRegistration = () => {
-    localStorage.removeItem('an-nour-registration');
+    effacerInscription();
     navigate('/inscription');
     window.location.reload();
   };
@@ -76,6 +106,8 @@ const StepConfirmation = () => {
           Félicitations ! Votre inscription au Séminaire An-Nour 8.0 a été validée avec succès.
         </p>
       </div>
+
+      <StatutPhoto photo={photo} sexe={data.personalInfo?.sexe} onReessayer={onReessayerPhoto} />
 
       <div className="confirmation-card">
         <div className="card-header">
