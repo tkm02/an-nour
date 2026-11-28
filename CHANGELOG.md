@@ -10,6 +10,9 @@ Format : [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/) · versions : 
   `healthInfo.consentementSante` envoyé à l'API (texte version `2026-11-sante-v1`, validé le 2026-11-28).
 - Déployable **avant** l'API : l'API actuelle ignore ce champ ; l'API du lot 4 refuse (422) une donnée de santé
   sans consentement.
+- Revue de sécurité des lots 3-4 (2026-11-28) : un retour à « RAS / Néant » décoche le consentement (il ne
+  réapparaît plus déjà coché pour une autre information) et le consentement n'est envoyé qu'avec une donnée de santé
+  déclarée. `docs/SECURITY.md` : stockage de la santé mis à jour (P-S4 résolu au lot 2).
 
 ### Documentation
 - Recensement CO : texte d'information et de consentement validé le 2026-11-27 (version `2026-11-co-v1`,
